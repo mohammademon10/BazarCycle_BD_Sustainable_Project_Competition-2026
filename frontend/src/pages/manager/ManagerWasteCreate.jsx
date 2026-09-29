@@ -31,9 +31,23 @@ export default function ManagerWasteCreate() {
   // Real-time recommendation preview
   const [recommendation, setRecommendation] = useState(null);
   const [loadingRec, setLoadingRec] = useState(false);
+  const [recKey, setRecKey] = useState(0); // bump to re-trigger highlight animation
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  // Category emoji mapping
+  const categoryEmoji = (name = '') => {
+    const n = name.toLowerCase();
+    if (n.includes('veg')) return '🥬';
+    if (n.includes('fruit')) return '🍎';
+    if (n.includes('fish')) return '🐟';
+    if (n.includes('plastic')) return '♻️';
+    if (n.includes('paper') || n.includes('card')) return '📦';
+    if (n.includes('meat')) return '🥩';
+    if (n.includes('glass')) return '🫙';
+    return '🗑️';
+  };
 
   // 1. Load markets and categories on mount
   useEffect(() => {
@@ -80,6 +94,7 @@ export default function ManagerWasteCreate() {
           quantity_kg: qtyNum
         });
         setRecommendation(res.data);
+        setRecKey(k => k + 1); // trigger highlight animation
       } catch (err) {
         console.error('Failed to get recommendation', err);
         setRecommendation(null);
@@ -301,17 +316,17 @@ export default function ManagerWasteCreate() {
             </form>
           </div>
 
-          {/* Right Column: Live Recommendation Engine Output Card (Prompt Section 10 & 11) */}
+          {/* Right Column: Live Recommendation Engine Output Card */}
           <div className="lg:col-span-5 lg:sticky lg:top-24 h-fit bg-gradient-to-br from-emerald-900 to-forest-950 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-6">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-emerald-800/80">
                 <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <Sparkles className="w-4 h-4 text-amber-400" aria-hidden="true" />
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
                     Engine Recommendation
                   </span>
                   {loadingRec && (
-                    <div className="w-3 h-3 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-3 h-3 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin" role="status" aria-label="Recalculating" />
                   )}
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-800 text-emerald-200">
@@ -320,39 +335,41 @@ export default function ManagerWasteCreate() {
               </div>
 
               {recommendation ? (
-                <div className="space-y-4 mt-4">
-                  {/* Category & Pathway */}
+                <div key={recKey} className="space-y-4 mt-4 animate-slide-up">
+                  {/* Category icon + Pathway */}
                   <div>
                     <span className="text-[11px] text-emerald-300 uppercase tracking-wider font-semibold">
                       Recommended Pathway
                     </span>
                     <h3 className="text-2xl font-black text-white mt-0.5 flex items-center space-x-2">
-                      <Recycle className="w-5 h-5 text-emerald-400" />
+                      <span className="text-2xl" aria-hidden="true">
+                        {categoryEmoji(categories.find(c => c.id === selectedCategoryId)?.name)}
+                      </span>
                       <span>{recommendation.recommended_pathway}</span>
                     </h3>
                   </div>
 
-                  {/* Estimated Resource Value (Section 11) */}
-                  <div className="p-4 rounded-xl bg-emerald-800/50 border border-emerald-700/60">
+                  {/* Estimated Resource Value */}
+                  <div className="p-4 rounded-xl bg-emerald-800/50 border border-emerald-700/60 rec-highlight">
                     <span className="text-[11px] font-bold uppercase text-amber-300 tracking-wider">
                       Estimated Resource Value
                     </span>
                     <div className="flex items-baseline space-x-1.5 mt-1">
-                      <span className="text-3xl font-extrabold text-amber-300">
+                      <span className="text-3xl font-extrabold text-amber-300 tabular-nums">
                         {recommendation.estimated_value.toLocaleString()}
                       </span>
                       <span className="text-sm font-bold text-amber-400">BDT</span>
                     </div>
                     <p className="text-[11px] text-emerald-200 mt-1">
-                      Calculation: {recommendation.quantity_kg} KG × {recommendation.unit_rate_bdt} BDT/KG
+                      {recommendation.quantity_kg} KG × {recommendation.unit_rate_bdt} BDT/KG
                     </p>
                   </div>
 
                   {/* Explainable Rationale */}
                   <div className="space-y-1">
                     <span className="text-[11px] text-emerald-300 uppercase tracking-wider font-semibold flex items-center">
-                      <Info className="w-3.5 h-3.5 mr-1" />
-                      Explanation
+                      <Info className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+                      Why this pathway?
                     </span>
                     <p className="text-xs text-slate-200 leading-relaxed bg-emerald-950/40 p-3 rounded-lg border border-emerald-800/40">
                       {recommendation.explanation}
@@ -360,15 +377,19 @@ export default function ManagerWasteCreate() {
                   </div>
 
                   {/* CO2 Factor */}
-                  <div className="flex items-center justify-between text-xs text-emerald-200 pt-1">
-                    <span>CO₂ Avoided (Project Estimate):</span>
-                    <span className="font-bold text-white">{recommendation.co2_impact_estimate} KG</span>
+                  <div className="flex items-center justify-between text-xs text-emerald-200 pt-1 border-t border-emerald-800/50">
+                    <span className="flex items-center gap-1.5">
+                      <Leaf className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+                      CO₂ Avoided (Project Estimate):
+                    </span>
+                    <span className="font-bold text-white tabular-nums">{recommendation.co2_impact_estimate} KG</span>
                   </div>
                 </div>
               ) : (
-                <div className="py-12 text-center text-emerald-300 text-xs space-y-2">
-                  <Scale className="w-8 h-8 mx-auto opacity-50" />
-                  <p>Enter quantity &gt; 0 KG to see live rule-based recommendation.</p>
+                <div className="py-12 text-center text-emerald-300 text-xs space-y-3">
+                  <Scale className="w-10 h-10 mx-auto opacity-40 animate-float" aria-hidden="true" />
+                  <p className="font-medium">Enter quantity &gt; 0 KG to see<br/>live rule-based recommendation.</p>
+                  <p className="text-emerald-400/70 text-[11px]">The engine calculates the optimal waste-to-resource pathway automatically.</p>
                 </div>
               )}
             </div>

@@ -41,7 +41,48 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-      }
+      },
+      keyframes: {
+        'spin-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'slide-up': {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-down': {
+          from: { opacity: '0', transform: 'translateY(-8px) scale(0.97)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-400px 0' },
+          '100%': { backgroundPosition: '400px 0' },
+        },
+      },
+      animation: {
+        'spin-slow': 'spin-slow 12s linear infinite',
+        'float': 'float 5s ease-in-out infinite',
+        'fade-in': 'fade-in 0.3s ease-out both',
+        'slide-up': 'slide-up 0.35s cubic-bezier(0.22,1,0.36,1) both',
+        'slide-down': 'slide-down 0.2s cubic-bezier(0.22,1,0.36,1) both',
+        'shimmer': 'shimmer 1.5s ease-in-out infinite',
+      },
+      transitionTimingFunction: {
+        'spring': 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+      },
     },
   },
   plugins: [],

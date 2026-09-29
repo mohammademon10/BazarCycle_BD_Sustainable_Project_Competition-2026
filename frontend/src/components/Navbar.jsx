@@ -145,7 +145,7 @@ export default function Navbar() {
 
               {demoDropdownOpen && (
                 <div 
-                  className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-slide-down"
                   role="menu"
                 >
                   <div className="px-3 py-1.5 border-b border-slate-100">
@@ -270,7 +270,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 px-4 pt-3 pb-5 space-y-2 bg-white/98 shadow-lg">
+        <div className="md:hidden border-t border-slate-200 px-4 pt-3 pb-5 space-y-2 bg-white/98 shadow-lg animate-slide-down">
           <Link
             to="/"
             className={`block px-3 py-2 rounded-lg text-sm font-medium ${

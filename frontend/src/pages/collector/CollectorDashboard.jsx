@@ -14,6 +14,8 @@ import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import StatCard from '../../components/StatCard';
 
+import { SkeletonCard } from '../../components/ui';
+
 export default function CollectorDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
@@ -45,7 +47,16 @@ export default function CollectorDashboard() {
   }, [user]);
 
   if (loading) {
-    return <div className="p-12 text-center text-xs text-slate-500">Loading collector portal...</div>;
+    return (
+      <div className="bg-slate-50 min-h-screen py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="bg-slate-200 h-32 rounded-2xl animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const totalMyRecovered = history.reduce((sum, p) => sum + p.quantity_kg, 0);
@@ -157,7 +168,17 @@ export default function CollectorDashboard() {
           </div>
 
           {history.length === 0 ? (
-            <p className="text-xs text-slate-500 py-6 text-center">No completed collections recorded yet.</p>
+            <div className="py-10 flex flex-col items-center justify-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+                <Recycle className="w-7 h-7 text-slate-300" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-bold text-slate-600">No collections recorded yet</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs">Accept a pickup from the feed and mark it as collected — it will appear here.</p>
+              <Link to="/collector/available" className="btn-primary mt-4 px-4 py-2 text-xs font-bold rounded-xl bg-sky-600 text-white hover:bg-sky-700 inline-flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5" aria-hidden="true" />
+                Browse Available Pickups
+              </Link>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-100 text-xs">

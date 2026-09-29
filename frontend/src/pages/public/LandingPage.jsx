@@ -16,6 +16,8 @@ import {
 import SafeImage from '../../components/SafeImage';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import useScrollReveal from '../../hooks/useScrollReveal';
+import useCountUp from '../../hooks/useCountUp';
 
 export default function LandingPage() {
   const { quickDemoLogin, isAuthenticated, user } = useAuth();
@@ -47,6 +49,17 @@ export default function LandingPage() {
       console.error(err);
     }
   };
+
+  // Scroll-reveal refs for major sections
+  const [metricsRef, metricsVisible] = useScrollReveal({ threshold: 0.2 });
+  const [journeyRef, journeyVisible] = useScrollReveal({ threshold: 0.15 });
+  const [featuresRef, featuresVisible] = useScrollReveal({ threshold: 0.15 });
+  const [ctaRef, ctaVisible] = useScrollReveal({ threshold: 0.2 });
+
+  // Count-up for hero metric stat
+  const wasteCount = useCountUp(metrics?.total_waste_registered_kg ?? 0, 1400, metricsVisible);
+  const recoveryCount = useCountUp(metrics?.total_waste_recovered_kg ?? 0, 1400, metricsVisible);
+  const marketsCount = useCountUp(metrics?.active_markets ?? 0, 1200, metricsVisible);
 
   return (
     <div className="bg-slate-50 min-h-screen">
@@ -84,7 +97,7 @@ export default function LandingPage() {
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   to="/login?mode=register"
-                  className="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-600/25 flex items-center space-x-2 transition-all hover:scale-[1.02]"
+                  className="btn-primary px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-600/25 flex items-center space-x-2"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-5 h-5" />
@@ -92,7 +105,7 @@ export default function LandingPage() {
 
                 <Link
                   to="/how-it-works"
-                  className="px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-base transition-colors"
+                  className="btn-secondary px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-base border border-slate-200"
                 >
                   See How It Works
                 </Link>
@@ -165,22 +178,26 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div ref={journeyRef} className="grid grid-cols-2 md:grid-cols-6 gap-3">
             {[
-              { step: '01', title: 'MARKET', desc: 'Vendor & Market registration' },
-              { step: '02', title: 'WASTE', desc: 'Quantity & Category logged' },
-              { step: '03', title: 'RESOURCE PATHWAY', desc: 'Rule engine recommendation' },
-              { step: '04', title: 'COLLECTOR', desc: 'Accepted by local logistics' },
-              { step: '05', title: 'RECOVERY', desc: 'Composted or Recycled' },
-              { step: '06', title: 'IMPACT', desc: 'CO₂ & Resource verified' },
+              { step: '01', title: 'MARKET', desc: 'Vendor & Market registration', emoji: '🏪' },
+              { step: '02', title: 'WASTE', desc: 'Quantity & Category logged', emoji: '📦' },
+              { step: '03', title: 'PATHWAY', desc: 'Rule engine recommendation', emoji: '♻️' },
+              { step: '04', title: 'COLLECTOR', desc: 'Accepted by local logistics', emoji: '🚛' },
+              { step: '05', title: 'RECOVERY', desc: 'Composted or Recycled', emoji: '🌱' },
+              { step: '06', title: 'IMPACT', desc: 'CO₂ & Resource verified', emoji: '📊' },
             ].map((item, idx) => (
-              <div 
-                key={idx} 
-                className="bg-emerald-800/60 border border-emerald-700 rounded-xl p-4 flex flex-col justify-between hover:bg-emerald-700/60 transition"
+              <div
+                key={idx}
+                className={`bg-emerald-800/60 border border-emerald-700 rounded-xl p-4 flex flex-col justify-between hover:bg-emerald-700/60 transition-all duration-200 hover:-translate-y-1 ${journeyVisible ? 'reveal-visible' : 'reveal-hidden'}`}
+                style={{ animationDelay: journeyVisible ? `${idx * 0.07}s` : '0s' }}
               >
                 <div>
-                  <span className="text-[11px] font-extrabold text-emerald-300 tracking-wider">{item.step}</span>
-                  <h3 className="font-bold text-sm text-white mt-1">{item.title}</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-extrabold text-emerald-300 tracking-wider">{item.step}</span>
+                    <span className="text-lg" aria-hidden="true">{item.emoji}</span>
+                  </div>
+                  <h3 className="font-bold text-sm text-white">{item.title}</h3>
                 </div>
                 <p className="text-xs text-emerald-200 mt-2">{item.desc}</p>
               </div>
@@ -202,35 +219,35 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div ref={metricsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className={`bg-slate-50 p-4 rounded-xl border border-slate-200 card-hover ${metricsVisible ? 'reveal-visible' : 'reveal-hidden'}`}>
               <span className="text-xs font-semibold text-slate-500 uppercase">Total Waste Registered</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 break-words">
-                {metrics ? `${metrics.total_waste_registered_kg.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-slate-500">KG</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 tabular-nums">
+                {metricsVisible ? wasteCount.toLocaleString() : '...'} <span className="text-sm font-semibold text-slate-500">KG</span>
               </p>
               <span className="text-[11px] text-slate-500 mt-1 block">Logged by market managers</span>
             </div>
 
-            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+            <div className={`bg-emerald-50 p-4 rounded-xl border border-emerald-200 card-hover ${metricsVisible ? 'reveal-visible' : 'reveal-hidden'}`} style={{ animationDelay: '0.08s' }}>
               <span className="text-xs font-semibold text-emerald-700 uppercase">Total Waste Recovered</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 break-words">
-                {metrics ? `${metrics.total_waste_recovered_kg.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-emerald-700">KG</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 tabular-nums">
+                {metricsVisible ? recoveryCount.toLocaleString() : '...'} <span className="text-sm font-semibold text-emerald-700">KG</span>
               </p>
               <span className="text-[11px] text-emerald-700 mt-1 block">Successfully collected & diverted</span>
             </div>
 
-            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+            <div className={`bg-amber-50 p-4 rounded-xl border border-amber-200 card-hover ${metricsVisible ? 'reveal-visible' : 'reveal-hidden'}`} style={{ animationDelay: '0.16s' }}>
               <span className="text-xs font-semibold text-amber-700 uppercase">Estimated Resource Value</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-amber-900 mt-1 break-words">
-                {metrics ? `${metrics.total_estimated_value_bdt.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-amber-700">BDT</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-amber-900 mt-1 break-words tabular-nums">
+                {metrics ? metrics.total_estimated_value_bdt.toLocaleString() : '...'} <span className="text-sm font-semibold text-amber-700">BDT</span>
               </p>
               <span className="text-[11px] text-amber-700 mt-1 block">Estimated value in local currency</span>
             </div>
 
-            <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
+            <div className={`bg-sky-50 p-4 rounded-xl border border-sky-200 card-hover ${metricsVisible ? 'reveal-visible' : 'reveal-hidden'}`} style={{ animationDelay: '0.24s' }}>
               <span className="text-xs font-semibold text-sky-700 uppercase">Estimated CO₂ Avoided</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-sky-900 mt-1 break-words">
-                {metrics ? `${metrics.total_co2_impact_kg.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-sky-700">KG</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-sky-900 mt-1 break-words tabular-nums">
+                {metrics ? metrics.total_co2_impact_kg.toLocaleString() : '...'} <span className="text-sm font-semibold text-sky-700">KG</span>
               </p>
               <span className="text-[11px] text-sky-700 mt-1 block">Project Estimate</span>
             </div>

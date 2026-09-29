@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ────────────────────────────────────────────────────
+   ROOT & BASE
+──────────────────────────────────────────────────── */
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   color-scheme: light;
@@ -15,10 +18,12 @@ body {
   color: #1e293b;
 }
 
-/* Custom scrollbars */
+/* ────────────────────────────────────────────────────
+   CUSTOM SCROLLBARS
+──────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
@@ -31,11 +36,279 @@ body {
   background: #94a3b8;
 }
 
-/* Card hover animation */
+/* ────────────────────────────────────────────────────
+   PAGE TRANSITION
+──────────────────────────────────────────────────── */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: pageEnter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ────────────────────────────────────────────────────
+   CARD HOVER LIFT
+──────────────────────────────────────────────────── */
 .card-hover {
-  transition: all 0.25s ease-in-out;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.18s ease;
+  will-change: transform;
 }
 .card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.10), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+}
+
+/* ────────────────────────────────────────────────────
+   STAT CARD HOVER (emerald accent border)
+──────────────────────────────────────────────────── */
+.stat-card-hover {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.stat-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px -6px rgba(16, 185, 129, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+}
+
+/* ────────────────────────────────────────────────────
+   BUTTON MICRO-INTERACTIONS
+──────────────────────────────────────────────────── */
+.btn-primary {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.18s ease;
+  will-change: transform;
+}
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.35);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97) translateY(0);
+}
+
+.btn-secondary {
+  transition: transform 0.15s ease-out, background-color 0.18s ease;
+  will-change: transform;
+}
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ────────────────────────────────────────────────────
+   SCROLL REVEAL
+──────────────────────────────────────────────────── */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.reveal-visible {
+  animation: revealUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered children */
+.reveal-visible:nth-child(2) { animation-delay: 0.08s; }
+.reveal-visible:nth-child(3) { animation-delay: 0.16s; }
+.reveal-visible:nth-child(4) { animation-delay: 0.24s; }
+.reveal-visible:nth-child(5) { animation-delay: 0.32s; }
+.reveal-visible:nth-child(6) { animation-delay: 0.40s; }
+
+/* ────────────────────────────────────────────────────
+   FADE IN (generic)
+──────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out both;
+}
+
+/* ────────────────────────────────────────────────────
+   SLIDE DOWN (dropdowns, mobile menu)
+──────────────────────────────────────────────────── */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ────────────────────────────────────────────────────
+   PULSE RING (live indicator)
+──────────────────────────────────────────────────── */
+@keyframes pulseRing {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  50%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+
+.pulse-ring {
+  animation: pulseRing 1.8s ease-out infinite;
+}
+
+/* ────────────────────────────────────────────────────
+   SHIMMER (skeleton loading)
+──────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ────────────────────────────────────────────────────
+   NAVBAR LOGO SPIN (very slow, subtle)
+──────────────────────────────────────────────────── */
+@keyframes spin-slow {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+/* ────────────────────────────────────────────────────
+   HERO FLOAT (subtle floating for hero elements)
+──────────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* ────────────────────────────────────────────────────
+   IMAGE ZOOM on hover
+──────────────────────────────────────────────────── */
+.img-zoom-container {
+  overflow: hidden;
+}
+.img-zoom-container img {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.img-zoom-container:hover img {
+  transform: scale(1.04);
+}
+
+/* ────────────────────────────────────────────────────
+   PICKUP STATUS BADGE TRANSITION
+──────────────────────────────────────────────────── */
+.status-badge {
+  transition: all 0.25s ease-out;
+}
+
+/* ────────────────────────────────────────────────────
+   RECOMMENDATION PANEL HIGHLIGHT
+──────────────────────────────────────────────────── */
+@keyframes recHighlight {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.rec-highlight {
+  animation: recHighlight 0.6s ease-out;
+}
+
+/* ────────────────────────────────────────────────────
+   PROGRESS BAR FILL
+──────────────────────────────────────────────────── */
+@keyframes progressFill {
+  from { width: 0%; }
+}
+.progress-animate {
+  animation: progressFill 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ────────────────────────────────────────────────────
+   FOCUS VISIBLE (accessibility)
+──────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* ────────────────────────────────────────────────────
+   REDUCED MOTION — disable all decorative animations
+──────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .page-enter {
+    animation: none;
+  }
+
+  .animate-spin-slow {
+    animation: none;
+  }
+
+  .animate-float {
+    animation: none;
+  }
+
+  .img-zoom-container:hover img {
+    transform: none;
+  }
+
+  .card-hover:hover,
+  .stat-card-hover:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-primary:hover:not(:disabled),
+  .btn-secondary:hover:not(:disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .reveal-hidden {
+    opacity: 1;
+    transform: none;
+  }
 }

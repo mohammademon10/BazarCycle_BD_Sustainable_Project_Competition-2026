@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import PageTransition from './components/PageTransition';
 
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
@@ -44,11 +45,11 @@ export default function App() {
           <main className="flex-grow">
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/how-it-works" element={<HowItWorksPage />} />
-              <Route path="/impact" element={<ImpactPage />} />
-              <Route path="/login" element={<LoginPage />} />
+              <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
+              <Route path="/about" element={<PageTransition><AboutPage /></PageTransition>} />
+              <Route path="/how-it-works" element={<PageTransition><HowItWorksPage /></PageTransition>} />
+              <Route path="/impact" element={<PageTransition><ImpactPage /></PageTransition>} />
+              <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
 
               {/* Admin Protected Routes */}
               <Route
