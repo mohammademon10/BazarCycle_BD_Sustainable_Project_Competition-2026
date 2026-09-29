@@ -53,12 +53,16 @@ export default function AdminPickups() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           {loading ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading pickups...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-100 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 font-medium sm:hidden block mb-2">
+                Scroll horizontally on mobile &rarr;
+              </span>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-100 text-xs">
                 <thead className="bg-slate-50 text-slate-700 font-bold uppercase">
                   <tr>
                     <th className="py-3 px-4 text-left">Requested</th>
@@ -104,6 +108,7 @@ export default function AdminPickups() {
                 </tbody>
               </table>
             </div>
+          </div>
           )}
         </div>
 

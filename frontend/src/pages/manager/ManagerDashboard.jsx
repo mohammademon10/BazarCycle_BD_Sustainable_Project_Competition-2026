@@ -163,7 +163,7 @@ export default function ManagerDashboard() {
               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Stream Breakdown</span>
               <h3 className="text-base font-bold text-slate-900 mt-1">Waste by Category</h3>
             </div>
-            <div className="h-56 flex items-center justify-center my-2">
+            <div className="relative h-56 w-full flex items-center justify-center my-2">
               {stats?.chart_waste_by_category ? (
                 <Doughnut
                   data={stats.chart_waste_by_category}
@@ -184,7 +184,7 @@ export default function ManagerDashboard() {
               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Historical Trend</span>
               <h3 className="text-base font-bold text-slate-900 mt-1">Monthly Volume</h3>
             </div>
-            <div className="h-56 my-2">
+            <div className="relative h-56 w-full my-2">
               {stats?.chart_monthly_waste ? (
                 <Bar
                   data={stats.chart_monthly_waste}

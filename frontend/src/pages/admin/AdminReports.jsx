@@ -87,8 +87,12 @@ export default function AdminReports() {
             <h3 className="font-bold text-sm text-slate-900 uppercase tracking-wider">
               Market-by-Market Bazar Sustainability Scores
             </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 font-medium sm:hidden block mb-2">
+                Scroll horizontally on mobile &rarr;
+              </span>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 text-xs">
                 <thead className="bg-slate-50 text-slate-700 font-bold uppercase">
                   <tr>
                     <th className="py-2 px-3 text-left">Market</th>
@@ -116,6 +120,7 @@ export default function AdminReports() {
               </table>
             </div>
           </div>
+        </div>
 
           {/* Verification Signoff */}
           <div className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between text-xs text-slate-500">

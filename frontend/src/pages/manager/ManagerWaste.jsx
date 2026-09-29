@@ -113,6 +113,9 @@ export default function ManagerWaste() {
 
         {/* Waste Table */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <span className="text-[10px] text-slate-400 font-medium sm:hidden block px-4 pt-3">
+            Scroll horizontally to view complete table &rarr;
+          </span>
           {loading ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading records...</div>
           ) : filtered.length === 0 ? (

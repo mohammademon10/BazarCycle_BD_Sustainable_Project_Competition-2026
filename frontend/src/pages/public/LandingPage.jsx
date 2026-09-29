@@ -202,10 +202,10 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
               <span className="text-xs font-semibold text-slate-500 uppercase">Total Waste Registered</span>
-              <p className="text-2xl lg:text-3xl font-extrabold text-slate-900 mt-1">
+              <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 break-words">
                 {metrics ? `${metrics.total_waste_registered_kg.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-slate-500">KG</span>
               </p>
               <span className="text-[11px] text-slate-500 mt-1 block">Logged by market managers</span>
@@ -213,7 +213,7 @@ export default function LandingPage() {
 
             <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
               <span className="text-xs font-semibold text-emerald-700 uppercase">Total Waste Recovered</span>
-              <p className="text-2xl lg:text-3xl font-extrabold text-emerald-900 mt-1">
+              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 break-words">
                 {metrics ? `${metrics.total_waste_recovered_kg.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-emerald-700">KG</span>
               </p>
               <span className="text-[11px] text-emerald-700 mt-1 block">Successfully collected & diverted</span>
@@ -221,7 +221,7 @@ export default function LandingPage() {
 
             <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
               <span className="text-xs font-semibold text-amber-700 uppercase">Estimated Resource Value</span>
-              <p className="text-2xl lg:text-3xl font-extrabold text-amber-900 mt-1">
+              <p className="text-2xl sm:text-3xl font-extrabold text-amber-900 mt-1 break-words">
                 {metrics ? `${metrics.total_estimated_value_bdt.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-amber-700">BDT</span>
               </p>
               <span className="text-[11px] text-amber-700 mt-1 block">Estimated value in local currency</span>
@@ -229,7 +229,7 @@ export default function LandingPage() {
 
             <div className="bg-sky-50 p-4 rounded-xl border border-sky-200">
               <span className="text-xs font-semibold text-sky-700 uppercase">Estimated CO₂ Avoided</span>
-              <p className="text-2xl lg:text-3xl font-extrabold text-sky-900 mt-1">
+              <p className="text-2xl sm:text-3xl font-extrabold text-sky-900 mt-1 break-words">
                 {metrics ? `${metrics.total_co2_impact_kg.toLocaleString()}` : '...'} <span className="text-sm font-semibold text-sky-700">KG</span>
               </p>
               <span className="text-[11px] text-sky-700 mt-1 block">Project Estimate</span>

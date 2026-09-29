@@ -112,6 +112,9 @@ export default function HowItWorksPage() {
             <p className="text-xs text-slate-500 mt-1">
               No black-box machine learning. Each category follows defined Bangladesh environmental benchmarks.
             </p>
+            <span className="text-[10px] text-slate-400 font-medium sm:hidden block mt-1">
+              Scroll horizontally to view all attributes &rarr;
+            </span>
           </div>
 
           <div className="overflow-x-auto">

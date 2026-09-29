@@ -157,7 +157,7 @@ export default function ImpactPage() {
               <h3 className="text-lg font-bold text-slate-900 mt-1">Resource Recovery Pathways</h3>
               <p className="text-xs text-slate-500 mb-4">Volume diverted by transformation type</p>
             </div>
-            <div className="h-64 flex items-center justify-center">
+            <div className="relative h-64 w-full flex items-center justify-center">
               <Doughnut
                 data={recoveryChartData}
                 options={{
@@ -182,7 +182,7 @@ export default function ImpactPage() {
               <h3 className="text-lg font-bold text-slate-900 mt-1">Registered vs Recovered Stream</h3>
               <p className="text-xs text-slate-500 mb-4">Live comparison across total volume</p>
             </div>
-            <div className="h-64">
+            <div className="relative h-64 w-full">
               <Bar
                 data={diversionChartData}
                 options={{
@@ -208,6 +208,9 @@ export default function ImpactPage() {
               <p className="text-xs text-slate-500 mt-0.5">
                 Calculated dynamically from Segregation (25%), Recovery (30%), Recycling (20%), and Collection Efficiency (25%).
               </p>
+              <span className="text-[10px] text-slate-400 font-medium sm:hidden block mt-1">
+                Scroll horizontally to view all component scores &rarr;
+              </span>
             </div>
             <div className="mt-3 sm:mt-0">
               <span className="text-xs px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">

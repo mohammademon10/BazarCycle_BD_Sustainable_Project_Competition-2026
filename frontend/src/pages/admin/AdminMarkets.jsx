@@ -36,6 +36,16 @@ export default function AdminMarkets() {
     fetchMarketsAndManagers();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowModal(false);
+    };
+    if (showModal) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showModal]);
+
   const handleCreateMarket = async (e) => {
     e.preventDefault();
     setError(null);
@@ -89,11 +99,22 @@ export default function AdminMarkets() {
 
         {/* Modal: Create Market */}
         {showModal && (
-          <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+          <div 
+            className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="font-bold text-lg text-slate-900">Onboard Local Bazar / Market</h3>
-                <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+                <button 
+                  onClick={() => setShowModal(false)} 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+                  aria-label="Close dialog"
+                >
+                  ✕
+                </button>
               </div>
 
               {error && (

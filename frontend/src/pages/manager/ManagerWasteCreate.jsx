@@ -302,7 +302,7 @@ export default function ManagerWasteCreate() {
           </div>
 
           {/* Right Column: Live Recommendation Engine Output Card (Prompt Section 10 & 11) */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-emerald-900 to-forest-950 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-6">
+          <div className="lg:col-span-5 lg:sticky lg:top-24 h-fit bg-gradient-to-br from-emerald-900 to-forest-950 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-6">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-emerald-800/80">
                 <div className="flex items-center space-x-2">
@@ -310,6 +310,9 @@ export default function ManagerWasteCreate() {
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
                     Engine Recommendation
                   </span>
+                  {loadingRec && (
+                    <div className="w-3 h-3 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin"></div>
+                  )}
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-800 text-emerald-200">
                   Deterministic

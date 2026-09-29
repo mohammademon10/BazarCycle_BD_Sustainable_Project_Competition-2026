@@ -49,8 +49,12 @@ export default function CollectorHistory() {
           ) : history.length === 0 ? (
             <div className="p-12 text-center text-slate-500 text-xs">No completed collections on record.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-100 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 font-medium sm:hidden block mb-2">
+                Scroll horizontally on mobile &rarr;
+              </span>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-100 text-xs">
                 <thead className="bg-slate-50 text-slate-700 font-bold uppercase">
                   <tr>
                     <th className="py-2.5 px-3 text-left">Collected Date</th>
@@ -85,6 +89,7 @@ export default function CollectorHistory() {
                 </tbody>
               </table>
             </div>
+          </div>
           )}
         </div>
 

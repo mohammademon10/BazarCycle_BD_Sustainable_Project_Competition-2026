@@ -7,7 +7,7 @@ export default function CollectorPickups() {
   const [activePickups, setActivePickups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState(null);
-  const [notes, setNotes] = useState('');
+  const [pickupNotes, setPickupNotes] = useState({});
   const [successMsg, setSuccessMsg] = useState(null);
   const [error, setError] = useState(null);
 
@@ -31,9 +31,11 @@ export default function CollectorPickups() {
     setError(null);
     setSuccessMsg(null);
 
+    const noteText = pickupNotes[pickupId]?.trim() || 'Batch loaded in collector vehicle and weighed.';
+
     try {
       await api.post(`/pickups/${pickupId}/collect`, {
-        notes: notes || 'Batch loaded in collector vehicle and weighed.'
+        notes: noteText
       });
       setSuccessMsg('Batch collected! Impact Record and CO₂ savings generated automatically.');
       await fetchActive();
@@ -144,6 +146,20 @@ export default function CollectorPickups() {
                   <div className="text-xs text-slate-600">
                     <span className="font-semibold text-slate-700">Target Pathway: </span>
                     <span className="text-emerald-700 font-bold">{p.recommended_pathway}</span>
+                  </div>
+
+                  <div className="pt-2">
+                    <label htmlFor={`pickup-note-${p.id}`} className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Collection & Scale Notes (Optional):
+                    </label>
+                    <input
+                      id={`pickup-note-${p.id}`}
+                      type="text"
+                      placeholder="e.g., Weighed 150kg at Gate 1, driver Kalam"
+                      value={pickupNotes[p.id] || ''}
+                      onChange={(e) => setPickupNotes({ ...pickupNotes, [p.id]: e.target.value })}
+                      className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800"
+                    />
                   </div>
                 </div>
 

@@ -139,7 +139,7 @@ export default function AdminDashboard() {
               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">1. Category Breakdown</span>
               <h3 className="text-base font-bold text-slate-900 mt-1">Waste by Category (KG)</h3>
             </div>
-            <div className="h-64 my-4 flex items-center justify-center">
+            <div className="relative h-64 w-full my-4 flex items-center justify-center">
               {stats?.chart_waste_by_category ? (
                 <Doughnut
                   data={stats.chart_waste_by_category}
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">2. Monthly Trend</span>
               <h3 className="text-base font-bold text-slate-900 mt-1">Monthly Waste Registered (KG)</h3>
             </div>
-            <div className="h-64 my-4">
+            <div className="relative h-64 w-full my-4">
               {stats?.chart_monthly_waste ? (
                 <Bar
                   data={stats.chart_monthly_waste}
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">3. Recovery Ratio</span>
               <h3 className="text-base font-bold text-slate-900 mt-1">Recovery vs Residual Waste</h3>
             </div>
-            <div className="h-64 my-4 flex items-center justify-center">
+            <div className="relative h-64 w-full my-4 flex items-center justify-center">
               {stats?.chart_recovery_trend ? (
                 <Doughnut
                   data={stats.chart_recovery_trend}
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">4. Pathway Allocation</span>
               <h3 className="text-base font-bold text-slate-900 mt-1">Resource Pathway Distribution</h3>
             </div>
-            <div className="h-64 my-4 flex items-center justify-center">
+            <div className="relative h-64 w-full my-4 flex items-center justify-center">
               {stats?.chart_resource_pathway ? (
                 <Doughnut
                   data={stats.chart_resource_pathway}

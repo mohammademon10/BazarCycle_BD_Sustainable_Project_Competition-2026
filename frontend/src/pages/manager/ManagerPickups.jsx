@@ -6,6 +6,7 @@ export default function ManagerPickups() {
   const [pickups, setPickups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [feedback, setFeedback] = useState(null);
 
   const fetchPickups = async () => {
     try {
@@ -24,11 +25,14 @@ export default function ManagerPickups() {
 
   const handleCancel = async (pickupId) => {
     if (!window.confirm('Are you sure you want to cancel this pickup request?')) return;
+    setFeedback(null);
     try {
       await api.post(`/pickups/${pickupId}/cancel`);
+      setFeedback({ type: 'success', text: 'Pickup request cancelled successfully.' });
       await fetchPickups();
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to cancel pickup');
+      const msg = err.response?.data?.detail || 'Failed to cancel pickup';
+      setFeedback({ type: 'error', text: typeof msg === 'string' ? msg : JSON.stringify(msg) });
     }
   };
 
@@ -63,15 +67,34 @@ export default function ManagerPickups() {
           </div>
         </div>
 
+        {feedback && (
+          <div className={`p-4 rounded-xl flex items-center space-x-2 text-xs ${
+            feedback.type === 'success' 
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
+              : 'bg-rose-50 border border-rose-200 text-rose-700'
+          }`}>
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            )}
+            <span className="font-medium">{feedback.text}</span>
+          </div>
+        )}
+
         {/* Pickups Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           {loading ? (
             <div className="p-8 text-center text-xs text-slate-500">Loading pickups...</div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-slate-500 text-xs">No pickup requests found.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 font-medium sm:hidden block mb-2">
+                Scroll horizontally on mobile &rarr;
+              </span>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 text-xs">
                 <thead className="bg-slate-50 text-slate-700 font-bold uppercase">
                   <tr>
                     <th className="px-4 py-3 text-left">Requested</th>
@@ -129,6 +152,7 @@ export default function ManagerPickups() {
                 </tbody>
               </table>
             </div>
+          </div>
           )}
         </div>
 
