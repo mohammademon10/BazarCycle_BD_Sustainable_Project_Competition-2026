@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="screenshots/logo.jpg" alt="BazarCycle BD Logo" width="280"/>
+
 # 🌱 BazarCycle BD
 
 ### ♻️ Don't Dump It. Cycle It.
