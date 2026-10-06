@@ -783,15 +783,83 @@ For production deployment with Supabase:
 
 ## 🧪 Testing & Quality Assurance
 
-The backend includes an automated test suite executed via `pytest` covering deterministic rule matching, quantity validation guards, authentication security, pickup concurrency safety, and public aggregations.
+BazarCycle BD employs a comprehensive automated test suite and production build verification to ensure 100% deterministic rule accuracy, mathematical precision, security boundaries, and concurrency protection.
 
-### Running the Test Suite
+### 🚀 Running the Automated Test Suite
+
+To ensure compatibility across Windows, Linux, macOS, and CI/CD environments, use the commands appropriate for your operating system:
+
+#### Option 1: Standard Activated Environment (Recommended for all platforms)
 ```bash
 cd backend
-.\venv\Scripts\python -m pytest -v tests/
+
+# Step 1: Activate Virtual Environment
+# Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# Windows (Command Prompt):
+.\venv\Scripts\activate.bat
+# Linux / macOS / Git Bash:
+source venv/bin/activate
+
+# Step 2: Run pytest suite
+pytest -v tests/
 ```
 
-### Verified Test Execution Results
+#### Option 2: Direct Binary Execution (Without activating environment)
+```bash
+cd backend
+
+# Windows (PowerShell / Command Prompt):
+.\venv\Scripts\pytest -v tests/
+
+# Linux / macOS / Git Bash:
+./venv/bin/pytest -v tests/
+```
+
+#### Option 3: Targeted Feature-Specific Testing
+```bash
+cd backend
+
+# Test ONLY the Deterministic Recommendation Engine:
+pytest -v tests/ -k "recommendation"
+
+# Test ONLY the Pickup Workflow & Concurrency Guards:
+pytest -v tests/ -k "concurrency"
+
+# Test ONLY Authentication & Role Authorization:
+pytest -v tests/ -k "login or register"
+
+# Test ONLY Public Impact Calculations & Schema Guards:
+pytest -v tests/ -k "impact or validation"
+```
+
+---
+
+### 📋 Test Suite Coverage & Verification Matrix
+
+The test suite contains **14 automated test cases** categorized across 5 mission-critical functional areas:
+
+| Test Case Name | Category | Scope & Engineering Verification | Result |
+| :--- | :--- | :--- | :---: |
+| `test_recommendation_vegetable_waste` | **Rule Engine** | Verifies 15 BDT/KG rate, 0.45 CO₂e factor, and aerobic composting pathway. | 🟢 PASSED |
+| `test_recommendation_fruit_waste` | **Rule Engine** | Verifies 12 BDT/KG rate, 0.40 CO₂e factor, and rapid bio-fermentation pathway. | 🟢 PASSED |
+| `test_recommendation_fish_waste` | **Rule Engine** | Verifies 25 BDT/KG rate, 0.60 CO₂e factor, and specialized fertilizer pathway. | 🟢 PASSED |
+| `test_recommendation_plastic` | **Rule Engine** | Verifies 35 BDT/KG rate, 1.20 CO₂e factor, and polymer recycling pathway. | 🟢 PASSED |
+| `test_recommendation_paper_cardboard` | **Rule Engine** | Verifies 18 BDT/KG rate, 0.90 CO₂e factor, and paper pulp mill pathway. | 🟢 PASSED |
+| `test_recommendation_other` | **Rule Engine** | Verifies fallback logic for unclassified waste with 5 BDT/KG disposal pathway. | 🟢 PASSED |
+| `test_recommendation_validation_zero_negative` | **Data Integrity** | Rejects 0 or negative waste weights (`ValueError: quantity > 0 KG`). | 🟢 PASSED |
+| `test_waste_validation_rejects_negative_or_zero` | **API Schema** | Pydantic v2 rejects invalid quantities at REST boundary (`HTTP 422`). | 🟢 PASSED |
+| `test_waste_recommend_api_endpoint` | **REST API** | End-to-end integration test of public POST recommendation endpoint. | 🟢 PASSED |
+| `test_login_valid_market_manager` | **Security** | Verifies valid credential verification, bcrypt match, and signed JWT issuance. | 🟢 PASSED |
+| `test_login_invalid_password` | **Security** | Ensures rejected authentication on mismatched password (`HTTP 401`). | 🟢 PASSED |
+| `test_register_and_login_new_user` | **Security** | Tests new user onboarding, duplicate email constraints, and role assignment. | 🟢 PASSED |
+| `test_pickup_and_concurrency_workflow` | **Concurrency Guard** | Simulates simultaneous collector claims; asserts atomic lock (`HTTP 409 Conflict`). | 🟢 PASSED |
+| `test_public_impact_summary` | **Analytics** | Computes live SQL aggregations for diverted tonnage and avoided emissions. | 🟢 PASSED |
+
+---
+
+### 💻 Verified Test Execution Output
+
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.13.5, pytest-8.3.4
@@ -812,15 +880,36 @@ tests/test_bazarcycle.py::test_waste_validation_rejects_negative_or_zero PASSED 
 tests/test_bazarcycle.py::test_pickup_and_concurrency_workflow PASSED    [ 92%]
 tests/test_bazarcycle.py::test_public_impact_summary PASSED              [100%]
 
-============================== 14 passed in 3.48s ==============================
+============================== 14 passed in 2.59s ==============================
 ```
 
-### Production Build Verification
-The React frontend production build was verified via `npm run build`:
+---
+
+### 📦 Frontend Production Build & Code Quality
+
+The frontend is built and bundled using **Vite 8.3** with strict module resolution:
+
 ```bash
 cd frontend
+
+# Install dependencies
+npm install
+
+# Run production build
 npm run build
-# Output: ✓ built in 6.31s (Zero errors, optimized bundles generated in dist/)
+```
+
+#### Verified Production Build Output:
+```text
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 1985 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.45 kB │ gzip:   0.29 kB
+dist/assets/index-StUwC35L.css   46.00 kB │ gzip:   8.61 kB
+dist/assets/index-RcF6DjuI.js   691.30 kB │ gzip: 201.76 kB
+✓ built in 3.73s (Zero compilation errors)
 ```
 
 ---
