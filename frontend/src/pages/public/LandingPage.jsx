@@ -77,37 +77,37 @@ export default function LandingPage() {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
               {/* Modern Live Pill Badge */}
-              <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-900 text-xs font-semibold tracking-wide shadow-xs">
-                <span className="flex h-2 w-2 relative">
+              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-900 text-xs font-semibold tracking-wide shadow-xs max-w-full">
+                <span className="flex h-2 w-2 relative shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
                 </span>
-                <span className="font-bold text-emerald-950">National Circular Initiative</span>
-                <span className="text-emerald-300">•</span>
-                <span className="text-emerald-800 font-medium">Smart Waste-to-Resource Platform</span>
+                <span className="font-bold text-emerald-950 truncate">National Circular Initiative</span>
+                <span className="hidden md:inline text-emerald-300">•</span>
+                <span className="hidden md:inline text-emerald-800 font-medium">Smart Waste-to-Resource Platform</span>
               </div>
 
               {/* Polished Main Heading */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-950 tracking-tight leading-[1.12]">
+              <h1 className="text-2xl sm:text-4xl lg:text-6xl font-extrabold text-slate-950 tracking-tight leading-tight sm:leading-[1.12]">
                 Turn Market Waste Into{' '}
-                <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-forest-600 bg-clip-text text-transparent">
-                  Valuable Local Resources.
+                <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-forest-600 bg-clip-text text-transparent block sm:inline">
+                  Local Resources.
                 </span>
               </h1>
 
               {/* Refined Descriptive Copy */}
-              <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl font-normal">
+              <p className="text-sm sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl font-normal">
                 An intelligent sustainability network empowering Bangladesh wholesale bazars to log daily organic waste, match verified recyclers, and divert produce discards into high-grade compost, biogas, and animal feed.
               </p>
 
               {/* High-End Slogan Pill */}
-              <div className="flex items-center space-x-3 text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200/90 rounded-xl px-4 py-2.5 w-fit shadow-xs">
-                <div className="flex items-center justify-center w-5 h-5 rounded-md bg-emerald-600 text-white font-bold text-xs shadow-xs">
+              <div className="flex items-center space-x-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200/90 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 w-fit max-w-full shadow-xs">
+                <div className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-md bg-emerald-600 text-white font-bold text-[10px] sm:text-xs shadow-xs shrink-0">
                   ✓
                 </div>
                 <span className="text-slate-900 font-bold tracking-tight">"Don't Dump It. Cycle It."</span>
-                <span className="text-slate-300">|</span>
-                <span className="text-slate-500 font-medium text-xs sm:text-sm">Measurable Carbon & Economic Value</span>
+                <span className="hidden sm:inline text-slate-300">|</span>
+                <span className="hidden sm:inline text-slate-500 font-medium">Measurable Carbon & Economic Value</span>
               </div>
 
               {/* Action Buttons */}
