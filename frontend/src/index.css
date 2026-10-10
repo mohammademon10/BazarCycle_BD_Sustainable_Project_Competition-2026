@@ -6,7 +6,7 @@
    ROOT & BASE
 ──────────────────────────────────────────────────── */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
   color-scheme: light;
 }
 
@@ -15,7 +15,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: #f8fafc;
-  color: #1e293b;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* ────────────────────────────────────────────────────

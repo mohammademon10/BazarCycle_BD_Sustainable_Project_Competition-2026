@@ -30,3 +30,7 @@ bazarcycle.db
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Backups & nested clone
+*.backup.md
+BazarCycle_BD_Sustainable_Project_Competition-2026/

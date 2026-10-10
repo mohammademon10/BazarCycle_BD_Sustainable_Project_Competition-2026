@@ -136,9 +136,9 @@ export default function Navbar() {
                 onClick={() => setDemoDropdownOpen(!demoDropdownOpen)}
                 aria-haspopup="true"
                 aria-expanded={demoDropdownOpen}
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="flex items-center space-x-2 px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-50/90 text-amber-900 border border-amber-200/90 hover:bg-amber-100 hover:border-amber-300 transition-all shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span>Demo Switcher</span>
                 <ChevronDown className={`w-3 h-3 text-amber-700 transition-transform ${demoDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -240,13 +240,13 @@ export default function Navbar() {
               <div className="flex items-center space-x-2">
                 <Link
                   to="/login"
-                  className="px-3.5 py-1.5 text-xs lg:text-sm font-semibold rounded-lg text-slate-700 hover:text-emerald-700 hover:bg-slate-50 transition"
+                  className="px-3.5 py-1.5 text-xs lg:text-sm font-semibold rounded-xl text-slate-700 hover:text-emerald-700 hover:bg-slate-50 transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/login?mode=register"
-                  className="px-3.5 py-1.5 text-xs lg:text-sm font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition"
+                  className="px-4 py-1.5 text-xs lg:text-sm font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs hover:shadow-emerald-600/25 transition-all"
                 >
                   Get Started
                 </Link>

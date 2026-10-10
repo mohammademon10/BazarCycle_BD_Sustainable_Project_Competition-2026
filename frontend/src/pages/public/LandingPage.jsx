@@ -11,7 +11,9 @@ import {
   ShieldCheck, 
   Scale, 
   Layers,
-  ArrowDown
+  ArrowDown,
+  Store,
+  MapPin
 } from 'lucide-react';
 import SafeImage from '../../components/SafeImage';
 import { useAuth } from '../../context/AuthContext';
@@ -64,98 +66,133 @@ export default function LandingPage() {
   return (
     <div className="bg-slate-50 min-h-screen">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden pt-8 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200 bg-white">
+      <section className="relative overflow-hidden pt-10 pb-16 lg:pt-18 lg:pb-24 border-b border-slate-200/80 bg-white">
+        {/* Subtle decorative background gradient */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-teal-50/50 rounded-full blur-2xl pointer-events-none -z-10" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
             
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-                <Leaf className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Bangladesh Market Waste Transformation</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>Rule-Based Engine</span>
+              {/* Modern Live Pill Badge */}
+              <div className="inline-flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-900 text-xs font-semibold tracking-wide shadow-xs">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                </span>
+                <span className="font-bold text-emerald-950">National Circular Initiative</span>
+                <span className="text-emerald-300">•</span>
+                <span className="text-emerald-800 font-medium">Smart Waste-to-Resource Platform</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-                Turn Market Waste Into <span className="text-emerald-600 underline decoration-emerald-300 decoration-wavy decoration-2">Local Resources.</span>
+              {/* Polished Main Heading */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-950 tracking-tight leading-[1.12]">
+                Turn Market Waste Into{' '}
+                <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-forest-600 bg-clip-text text-transparent">
+                  Valuable Local Resources.
+                </span>
               </h1>
 
+              {/* Refined Descriptive Copy */}
               <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl font-normal">
-                BazarCycle BD helps local markets track waste, discover resource pathways, connect with collectors, and measure environmental impact.
+                An intelligent sustainability network empowering Bangladesh wholesale bazars to log daily organic waste, match verified recyclers, and divert produce discards into high-grade compost, biogas, and animal feed.
               </p>
 
-              {/* Tagline Badge */}
-              <div className="p-3.5 rounded-xl bg-forest-50 border border-forest-200 inline-block">
-                <p className="text-sm font-bold text-forest-900 flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                  <span>Tagline: "Don't Dump It. Cycle It."</span>
-                </p>
+              {/* High-End Slogan Pill */}
+              <div className="flex items-center space-x-3 text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200/90 rounded-xl px-4 py-2.5 w-fit shadow-xs">
+                <div className="flex items-center justify-center w-5 h-5 rounded-md bg-emerald-600 text-white font-bold text-xs shadow-xs">
+                  ✓
+                </div>
+                <span className="text-slate-900 font-bold tracking-tight">"Don't Dump It. Cycle It."</span>
+                <span className="text-slate-300">|</span>
+                <span className="text-slate-500 font-medium text-xs sm:text-sm">Measurable Carbon & Economic Value</span>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              <div className="flex flex-wrap items-center gap-3.5 pt-1">
                 <Link
                   to="/login?mode=register"
-                  className="btn-primary px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-600/25 flex items-center space-x-2"
+                  className="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/35 transition-all duration-200 flex items-center space-x-2 group hover:-translate-y-0.5"
                 >
-                  <span>Get Started</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <span>Get Started Free</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <Link
                   to="/how-it-works"
-                  className="btn-secondary px-6 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-base border border-slate-200"
+                  className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-sm sm:text-base border border-slate-300 shadow-xs transition-all duration-200 hover:-translate-y-0.5"
                 >
                   See How It Works
                 </Link>
               </div>
 
-              {/* Quick Demo Buttons for Judges */}
-              <div className="pt-4 border-t border-slate-100">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 mr-1.5" />
-                  Instant Competition Demo Logins (1-Click):
-                </p>
-                <div className="flex flex-wrap gap-2">
+              {/* Refined Executive Demo Access Dock */}
+              <div className="pt-5 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2.5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 mr-1.5" />
+                    Instant Demo Portals (1-Click Access)
+                  </p>
+                  <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Pre-configured judge logins</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <button
                     onClick={() => handleDemo('MARKET_MANAGER')}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-semibold hover:bg-emerald-200 border border-emerald-300 transition"
+                    className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 text-xs font-bold border border-emerald-200 transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
                   >
-                    🏪 Market Manager (Karwan Bazar)
+                    <Store className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">Market Manager (Karwan Bazar)</span>
                   </button>
                   <button
                     onClick={() => handleDemo('COLLECTOR')}
-                    className="px-3 py-1.5 rounded-lg bg-sky-100 text-sky-900 text-xs font-semibold hover:bg-sky-200 border border-sky-300 transition"
+                    className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100/90 text-sky-950 text-xs font-bold border border-sky-200 transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
                   >
-                    🚛 Waste Collector (Salam Miah)
+                    <Truck className="w-4 h-4 text-sky-600 shrink-0" />
+                    <span className="truncate">Waste Collector (Salam Miah)</span>
                   </button>
                   <button
                     onClick={() => handleDemo('ADMIN')}
-                    className="px-3 py-1.5 rounded-lg bg-purple-100 text-purple-900 text-xs font-semibold hover:bg-purple-200 border border-purple-300 transition"
+                    className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/90 text-purple-950 text-xs font-bold border border-purple-200 transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
                   >
-                    🛡️ Platform Admin
+                    <ShieldCheck className="w-4 h-4 text-purple-600 shrink-0" />
+                    <span className="truncate">Platform Admin</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Right: Authentic Photograph from User Uploads */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
+            {/* Right: Authentic Photograph with Professional Glass Frame */}
+            <div className="lg:col-span-5 relative">
+              {/* Ambient Glow */}
+              <div className="absolute -inset-2 bg-gradient-to-tr from-emerald-500/20 to-teal-400/20 rounded-3xl blur-xl opacity-70 -z-10"></div>
+              
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-900/10 bg-white">
                 <SafeImage
                   src="/images/hero_market_bazar.jpg"
                   alt="Vibrant Bangladesh wholesale vegetable bazar with vendors and produce baskets"
                   loading="eager"
                   aspectRatio="aspect-[4/3]"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transform hover:scale-102 transition-transform duration-500"
                 />
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/80 via-slate-900/40 to-transparent p-4 text-white">
-                  <span className="text-[11px] font-semibold tracking-wider uppercase text-emerald-300">
-                    Local Bangladesh Market Context
-                  </span>
-                  <p className="text-xs font-medium text-slate-200 mt-0.5">
-                    Authentic wholesale vegetable market in Dhaka (Karwan Bazar wholesale environment)
+
+                {/* Floating Top Badge */}
+                <div className="absolute top-3.5 left-3.5 backdrop-blur-md bg-slate-950/70 border border-white/20 text-white px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-xs font-bold tracking-tight">Karwan Bazar, Dhaka</span>
+                </div>
+
+                {/* Bottom Overlay with Professional Gradient */}
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-900/60 to-transparent p-4 sm:p-5 text-white">
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-300">
+                      Active Wholesale Hub Deployment
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium text-slate-200 mt-1 leading-snug">
+                    Ground-level waste categorization at Dhaka’s primary agricultural distribution terminal.
                   </p>
                 </div>
               </div>

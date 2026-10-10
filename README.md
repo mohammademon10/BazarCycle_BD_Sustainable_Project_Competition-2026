@@ -10,7 +10,7 @@
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org)
@@ -544,13 +544,14 @@ FastAPI automatically generates an interactive Swagger UI documentation at `http
 
 | Layer | Technology | Version | Purpose in BazarCycle BD |
 | :--- | :--- | :---: | :--- |
-| **Frontend Framework** | **React** | `18.3.1` | Modular Single Page Application (SPA) architecture |
+| **Frontend Framework** | **React** | `19.2.8` | Modular Single Page Application (SPA) architecture |
 | **Build Tool** | **Vite** | `8.3.1` | Ultra-fast HMR and optimized production bundling |
+| **Typography & Fonts** | **Plus Jakarta Sans** | `Google Fonts` | Modern geometric sans-serif typography with subpixel rendering |
 | **Styling & Design** | **Tailwind CSS** | `3.4.17` | Responsive eco-palette styling and utility layout system |
-| **Routing** | **React Router DOM** | `6.28.0` | Client-side declarative routing and role-based route guards |
+| **Routing** | **React Router DOM** | `7.18.4` | Client-side declarative routing and role-based route guards |
 | **Data Visualization** | **Chart.js & react-chartjs-2**| `4.4.7` | Doughnut, Bar, and Line charts rendering live database impact |
-| **Icons & Micro-UI** | **Lucide React** | `0.468.0` | Crisp SVG iconography across navigation, actions, and KPI cards |
-| **HTTP Client** | **Axios** | `1.7.9` | Promise-based API requests with automatic JWT interceptors |
+| **Icons & Micro-UI** | **Lucide React** | `1.48.0` | Crisp SVG iconography across navigation, actions, and KPI cards |
+| **HTTP Client** | **Axios** | `1.20.0` | Promise-based API requests with automatic JWT interceptors |
 | **Backend Framework** | **FastAPI** | `0.115.6` | Asynchronous Python REST API with automatic OpenAPI docs |
 | **Language Runtime** | **Python** | `3.13` | Modern, performant backend execution runtime |
 | **ORM & Data Access** | **SQLAlchemy** | `2.0.36` | Declarative relational database modeling and transactional locking |
