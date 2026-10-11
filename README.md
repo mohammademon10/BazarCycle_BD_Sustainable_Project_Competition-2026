@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="screenshots/logo.jpg" alt="BazarCycle BD Logo" width="280"/>
+<img src="screenshots/BazarCycle_BD_Banner.gif" alt="BazarCycle BD - Don't Dump It. Cycle It." width="100%"/>
 
 # 🌱 BazarCycle BD
 
@@ -20,6 +20,8 @@
 
 <br/>
 
+**[🎬 Overview Video](#-project-overview-video)** • 
+**[🖼️ Poster](#️-project-poster)** • 
 **[📸 Live Screenshots](#-visual-tour--screenshots)** • 
 **[🔄 Core Workflow](#-core-workflow)** • 
 **[🧠 Rule Engine](#-deterministic-waste-to-resource-rule-engine)** • 
@@ -36,17 +38,43 @@
 
 **BazarCycle BD** is a digital sustainability platform built specifically for Bangladesh's dense wholesale and retail market ecosystems (e.g., Karwan Bazar, Jatrabari Krishi Market, Mirpur-1 Municipal Market).
 
-In Bangladeshi agricultural and fish bazars, hundreds of tons of organic discards, packaging plastics, and corrugated cardboard boxes are generated every morning. Traditionally, these materials are swept into open municipal heaps or landfill collection dumpsters, where anaerobic decomposition produces harmful methane emissions while informal recyclers lack timely coordination to retrieve valuable segregated materials.
+In Bangladeshi agricultural and fish bazars, large volumes of organic discards, packaging plastics, and corrugated cardboard boxes are generated every morning. Traditionally, these materials are swept into open municipal heaps or landfill collection dumpsters, where anaerobic decomposition produces harmful methane emissions while informal recyclers lack timely coordination to retrieve valuable segregated materials.
 
 BazarCycle BD bridges this structural gap by providing:
 1. **Standardized Waste Logging:** On-site shed managers log segregated batches by weight (KG).
 2. **Deterministic Resource Pathways:** Instant rule-based classification into composting, organic fertilizer, or recycling pathways—with zero black-box ML or third-party inference fees.
-3. **Local Market Valuation (BDT):** Transparent estimated resource values based on current Dhaka material recovery benchmarks.
+3. **Local Market Valuation (BDT):** Transparent estimated resource values based on project-defined estimate rates (demonstration values, not independently verified).
 4. **Concurrency-Safe Pickup Logistics:** Row-level atomic state locking ensures independent waste collectors can claim and execute pickups without double-assignment conflicts.
 5. **Auditable Sustainability Scoring (0–100):** Real-time quantitative scoring calculated directly from active database records measuring segregation, recovery rate, recycling diversion, and collection fulfillment.
 
 > [!NOTE]  
 > **Platform Classification:** BazarCycle BD is an explainable **Rule-Based Circular Economy Platform** built for the **Sustainable Project Competition 2026** at **Daffodil International University**. It operates using deterministic business rules and transparent equations; it does not utilize unverified machine learning or fabricated AI predictions.
+
+---
+
+## 🎬 Project Overview Video
+
+<div align="center">
+
+[![BazarCycle BD Project Overview Video](screenshots/Team_PROTON_poster_design_2K_20261011205509.jpg)](https://youtu.be/_28NDrSCLAI)
+
+**▶️ [Watch the full project overview on YouTube](https://youtu.be/_28NDrSCLAI)**
+
+*A narrated walkthrough of the problem, solution, rule engine, concurrency-safe pickups, architecture, results and roadmap. Subtitles: [`docs/BazarCycle_BD_Overview.srt`](docs/BazarCycle_BD_Overview.srt).*
+
+</div>
+
+---
+
+## 🖼️ Project Poster
+
+<div align="center">
+
+<img src="screenshots/EWRF.jpg_2K_20261011212307.jpg" alt="BazarCycle BD Project Poster" width="55%"/>
+
+*BazarCycle BD project poster. Figures shown on the poster are illustrative project estimates, not field-measured results.*
+
+</div>
 
 ---
 
@@ -549,7 +577,7 @@ FastAPI automatically generates an interactive Swagger UI documentation at `http
 | **Typography & Fonts** | **Plus Jakarta Sans** | `Google Fonts` | Modern geometric sans-serif typography with subpixel rendering |
 | **Styling & Design** | **Tailwind CSS** | `3.4.17` | Responsive eco-palette styling and utility layout system |
 | **Routing** | **React Router DOM** | `7.18.4` | Client-side declarative routing and role-based route guards |
-| **Data Visualization** | **Chart.js & react-chartjs-2**| `4.4.7` | Doughnut, Bar, and Line charts rendering live database impact |
+| **Data Visualization** | **Chart.js & react-chartjs-2**| `4.5.1` | Doughnut, Bar, and Line charts rendering live database impact |
 | **Icons & Micro-UI** | **Lucide React** | `1.48.0` | Crisp SVG iconography across navigation, actions, and KPI cards |
 | **HTTP Client** | **Axios** | `1.20.0` | Promise-based API requests with automatic JWT interceptors |
 | **Backend Framework** | **FastAPI** | `0.115.6` | Asynchronous Python REST API with automatic OpenAPI docs |
