@@ -1,0 +1,115 @@
+1
+00:00:01,000 --> 00:00:04,046
+BazarCycle BD. Don't dump it. Cycle it.
+
+2
+00:00:04,496 --> 00:00:08,890
+A web platform that turns local market waste into local resources.
+
+3
+00:00:10,790 --> 00:00:18,484
+Every day, Bangladesh's bazars generate vegetable, fruit and fish waste, along with plastic and cardboard packaging.
+
+4
+00:00:18,934 --> 00:00:26,165
+When it is mixed and thrown away together, recoverable resources are lost, and organic waste becomes a disposal burden.
+
+5
+00:00:26,615 --> 00:00:32,943
+Worse, nobody has a shared record of what was generated, who collected it, or whether anything was recovered.
+
+6
+00:00:34,843 --> 00:00:45,376
+BazarCycle BD closes that gap with one digital workflow: register the waste, get a rule-based recommendation, connect with a collector, and measure the recovery.
+
+7
+00:00:45,826 --> 00:00:51,597
+It is a completed, working prototype, built for market managers, collectors and administrators.
+
+8
+00:00:53,497 --> 00:01:02,996
+Market managers start on a dashboard showing registered and recovered waste, estimated resource value, pending collections, and a sustainability score.
+
+9
+00:01:03,446 --> 00:01:15,853
+Logging a batch triggers the rule engine instantly. 150 kg of vegetable waste is routed to composting, with an estimated value of 2,250 BDT.
+
+10
+00:01:16,303 --> 00:01:24,777
+The carbon estimate is 67.5 kg CO2e avoided. Like every value here, it is a project estimate for demonstration.
+
+11
+00:01:25,227 --> 00:01:29,595
+Every batch is tracked in a registry, with its pathway and its pickup status.
+
+12
+00:01:30,045 --> 00:01:38,450
+Collectors browse available pickups and accept one. A row-level database lock means two collectors can never claim the same batch.
+
+13
+00:01:38,900 --> 00:01:42,437
+Their dashboard tracks active collections and recovered tonnage.
+
+14
+00:01:42,887 --> 00:01:47,921
+Administrators oversee users, markets, categories and platform-wide activity.
+
+15
+00:01:48,371 --> 00:01:54,493
+A public impact dashboard shows what has been registered and recovered, straight from database records.
+
+16
+00:01:54,943 --> 00:02:09,405
+A four-part Sustainability Score (0–100) rates each market on segregation, recovery, recycling and composting, and collection efficiency. It is project-defined, not an official certification.
+
+17
+00:02:11,305 --> 00:02:19,661
+The engine is deterministic: the same category always produces the same pathway, so anyone can see why.
+
+18
+00:02:20,111 --> 00:02:25,438
+No machine learning and no paid AI service. Value is simply quantity × rate.
+
+19
+00:02:25,888 --> 00:02:34,801
+Each pickup moves through clear states: available, accepted, collected. Then impact records are created and dashboards update.
+
+20
+00:02:36,701 --> 00:02:40,131
+Technically, one React application serves all three roles.
+
+21
+00:02:40,581 --> 00:02:53,658
+A FastAPI service enforces JWT authentication, role-based access control and Pydantic validation, with separate services for recommendation, pickups, impact and scoring.
+
+22
+00:02:54,108 --> 00:03:00,245
+Data lives in PostgreSQL on Supabase, with SQLite as a local development fallback.
+
+23
+00:03:02,145 --> 00:03:18,301
+Three decisions define the engineering: explainable rules instead of a black box; concurrency-safe pickup claiming (a second collector gets HTTP 409); and dashboards computed from real records, not mock-ups.
+
+24
+00:03:20,201 --> 00:03:29,620
+The prototype is fully implemented: 14 of 14 backend tests pass, the frontend production build succeeds, and the interface is responsive on mobile.
+
+25
+00:03:30,070 --> 00:03:38,561
+Testing confirms the software behaves as designed. No field trial has been run, and the estimates are not independently verified.
+
+26
+00:03:40,461 --> 00:03:48,236
+BazarCycle BD contributes to SDG 11, 12 and 13, with SDG 8 as a secondary link.
+
+27
+00:03:48,686 --> 00:04:01,376
+Planned next steps: an installable mobile app, IoT smart bins, Bengali localization, municipal integration, and a real-market field pilot to replace estimates with measured data.
+
+28
+00:04:03,276 --> 00:04:10,533
+Market waste should not be treated only as waste. It can be tracked, redirected, recovered and measured as a resource.
+
+29
+00:04:10,983 --> 00:04:14,029
+BazarCycle BD. Don't dump it. Cycle it.
