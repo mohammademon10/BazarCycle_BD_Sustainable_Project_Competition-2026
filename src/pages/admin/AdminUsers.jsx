@@ -26,11 +26,12 @@ export default function AdminUsers() {
   const handleRoleChange = async (userId, newRole) => {
     setFeedback(null);
     try {
-      await api.put(`/auth/users/${userId}/role?new_role=${newRole}`);
-      setFeedback({ type: 'success', text: `User role updated successfully to ${newRole}.` });
+      const sanitizedRole = String(newRole).trim().toUpperCase();
+      await api.put(`/auth/users/${userId}/role?new_role=${sanitizedRole}`);
+      setFeedback({ type: 'success', text: `User role updated successfully to ${sanitizedRole}.` });
       await fetchUsers();
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Failed to update user role';
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to update user role';
       setFeedback({ type: 'error', text: typeof msg === 'string' ? msg : JSON.stringify(msg) });
     }
   };

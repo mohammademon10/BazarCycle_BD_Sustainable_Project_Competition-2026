@@ -146,7 +146,7 @@ export default function ManagerWasteCreate() {
         navigate('/manager/waste');
       }, 1200);
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Failed to register waste record.';
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to register waste record.';
       setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setSubmitting(false);

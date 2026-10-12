@@ -54,23 +54,23 @@ export default function LoginPage() {
     try {
       if (isRegisterMode) {
         const newUser = await register({
-          name,
-          email,
-          phone,
-          role,
-          password
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone ? phone.trim() : null,
+          role: role.toUpperCase(),
+          password,
         });
         if (newUser.role === 'ADMIN') navigate('/admin/dashboard');
         else if (newUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
         else navigate('/collector/dashboard');
       } else {
-        const loggedUser = await login(email, password);
+        const loggedUser = await login(email.trim().toLowerCase(), password);
         if (loggedUser.role === 'ADMIN') navigate('/admin/dashboard');
         else if (loggedUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
         else navigate('/collector/dashboard');
       }
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Authentication failed. Please check your credentials.';
+      const msg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Authentication failed. Please check your credentials.';
       setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setLoading(false);
@@ -86,7 +86,8 @@ export default function LoginPage() {
       else if (loggedUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
       else if (loggedUser.role === 'COLLECTOR') navigate('/collector/dashboard');
     } catch (err) {
-      setError('Failed to log in with demo account. Ensure backend is running.');
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to log in with demo account. Ensure backend is running.';
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setLoading(false);
     }

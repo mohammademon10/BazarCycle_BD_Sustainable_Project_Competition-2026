@@ -4,7 +4,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import pg from 'pg';
+
+const { Pool } = pg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -113,7 +117,9 @@ const pickupRequests: PickupRequest[] = [];
 const impactRecords: ImpactRecord[] = [];
 const sustainabilityScores: SustainabilityScore[] = [];
 
-// Recommendation Catalog & Rules
+// ==========================================
+// Recommendation Rules Catalog
+// ==========================================
 const RECOMMENDATION_RULES: Record<string, {
   standard_name: string;
   recommended_pathway: string;
@@ -480,7 +486,7 @@ function seedDatabase() {
   const w1: WasteRecord = {
     id: 'waste-w1',
     market_id: m1.id,
-    category_id: catList[0].id, // Veg
+    category_id: catList[0].id,
     quantity_kg: 280.0,
     description: 'Morning fresh vegetable trimmings and cabbage leaves from shed 4.',
     record_date: todayStr,
@@ -521,7 +527,7 @@ function seedDatabase() {
   const w2: WasteRecord = {
     id: 'waste-w2',
     market_id: m1.id,
-    category_id: catList[3].id, // Plastic
+    category_id: catList[3].id,
     quantity_kg: 65.0,
     description: 'Sorted HDPE vegetable crates and clear PET bottles from produce unloading dock.',
     record_date: todayStr,
@@ -562,7 +568,7 @@ function seedDatabase() {
   const w3: WasteRecord = {
     id: 'waste-w3',
     market_id: m1.id,
-    category_id: catList[2].id, // Fish
+    category_id: catList[2].id,
     quantity_kg: 95.0,
     description: 'Afternoon fish market cleaning discards packed in insulated barrels.',
     record_date: todayStr,
@@ -591,7 +597,7 @@ function seedDatabase() {
   const w4: WasteRecord = {
     id: 'waste-w4',
     market_id: m1.id,
-    category_id: catList[4].id, // Cardboard
+    category_id: catList[4].id,
     quantity_kg: 120.0,
     description: 'Flattened fruit cartons and wholesale packaging boxes stacked at gate 3.',
     record_date: todayStr,
@@ -620,7 +626,7 @@ function seedDatabase() {
   const w5: WasteRecord = {
     id: 'waste-w5',
     market_id: m2.id,
-    category_id: catList[1].id, // Fruit
+    category_id: catList[1].id,
     quantity_kg: 190.0,
     description: 'Summer seasonal fruit waste (papaya and melon skins).',
     record_date: todayStr,
@@ -666,6 +672,193 @@ function seedDatabase() {
 seedDatabase();
 
 // ==========================================
+// PostgreSQL (Supabase) Integration & Error Handler
+// ==========================================
+let pool: pg.Pool | null = null;
+const dbUrl = process.env.DATABASE_URL;
+if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
+  try {
+    pool = new Pool({
+      connectionString: dbUrl,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
+    });
+    console.log('PostgreSQL database pool configured for Supabase.');
+  } catch (err: any) {
+    console.warn('PostgreSQL pool initialization failed:', err.message);
+    pool = null;
+  }
+}
+
+function handleDbError(err: any, res: express.Response, fallbackMessage: string) {
+  console.error('[Database Error]', err);
+  if (err.code === '23505') {
+    // Unique constraint violation (e.g., profiles_email_key)
+    return res.status(409).json({
+      error: 'A record with this unique value (e.g. email) already exists.',
+      detail: err.detail || 'Duplicate key violation.',
+    });
+  }
+  if (err.code === '23503') {
+    // Foreign key violation
+    return res.status(400).json({
+      error: 'Referenced entity does not exist in database.',
+      detail: err.detail || 'Foreign key violation.',
+    });
+  }
+  if (err.code === '23514') {
+    // Check constraint violation (e.g. role IN ('ADMIN', 'MARKET_MANAGER', 'COLLECTOR'))
+    return res.status(400).json({
+      error: 'Value violates database check constraints. Please check roles or quantities.',
+      detail: err.message,
+    });
+  }
+  return res.status(500).json({
+    error: fallbackMessage,
+    detail: err.message || fallbackMessage,
+  });
+}
+
+async function tryDbQuery(sql: string, params: any[] = []): Promise<any> {
+  if (!pool) return null;
+  try {
+    return await pool.query(sql, params);
+  } catch (err: any) {
+    if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || err.message?.includes('connect') || err.message?.includes('timeout')) {
+      console.warn('[DB Connection Warning] Database temporarily unreachable, fallback to memory:', err.message);
+      return null;
+    }
+    throw err;
+  }
+}
+
+async function initDbSync() {
+  if (!pool) return;
+  try {
+    const client = await pool.connect();
+    console.log('Synchronizing with Supabase PostgreSQL...');
+
+    // Categories
+    const catRes = await client.query('SELECT * FROM waste_categories');
+    if (catRes.rows.length > 0) {
+      wasteCategories.length = 0;
+      catRes.rows.forEach(r => wasteCategories.push({
+        id: r.id,
+        name: r.name,
+        description: r.description,
+        waste_type: r.waste_type,
+        resource_pathway: r.resource_pathway,
+        estimated_value_per_kg: Number(r.estimated_value_per_kg),
+        recyclable: Boolean(r.recyclable),
+        organic: Boolean(r.organic),
+        created_at: r.created_at?.toISOString?.() || String(r.created_at),
+      }));
+    } else {
+      for (const c of wasteCategories) {
+        await client.query(
+          `INSERT INTO waste_categories (id, name, description, waste_type, resource_pathway, estimated_value_per_kg, recyclable, organic, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO NOTHING`,
+          [c.id, c.name, c.description, c.waste_type, c.resource_pathway, c.estimated_value_per_kg, c.recyclable, c.organic, c.created_at]
+        );
+      }
+    }
+
+    // Profiles
+    const profRes = await client.query('SELECT * FROM profiles');
+    if (profRes.rows.length > 0) {
+      profiles.length = 0;
+      profRes.rows.forEach(r => profiles.push({
+        id: r.id,
+        name: r.name,
+        email: r.email,
+        phone: r.phone,
+        role: r.role,
+        hashed_password: r.hashed_password,
+        created_at: r.created_at?.toISOString?.() || String(r.created_at),
+        updated_at: r.updated_at?.toISOString?.() || String(r.updated_at),
+      }));
+    } else {
+      for (const p of profiles) {
+        await client.query(
+          `INSERT INTO profiles (id, name, email, phone, role, hashed_password, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO NOTHING`,
+          [p.id, p.name, p.email, p.phone, p.role, p.hashed_password, p.created_at, p.updated_at]
+        );
+      }
+    }
+
+    // Markets
+    const mRes = await client.query('SELECT * FROM markets');
+    if (mRes.rows.length > 0) {
+      markets.length = 0;
+      mRes.rows.forEach(r => markets.push({
+        id: r.id,
+        name: r.name,
+        location: r.location,
+        area: r.area,
+        manager_id: r.manager_id,
+        contact_phone: r.contact_phone,
+        status: r.status,
+        created_at: r.created_at?.toISOString?.() || String(r.created_at),
+        updated_at: r.updated_at?.toISOString?.() || String(r.updated_at),
+      }));
+    } else {
+      for (const m of markets) {
+        await client.query(
+          `INSERT INTO markets (id, name, location, area, manager_id, contact_phone, status, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO NOTHING`,
+          [m.id, m.name, m.location, m.area, m.manager_id, m.contact_phone, m.status, m.created_at, m.updated_at]
+        );
+      }
+    }
+
+    // Waste records
+    const wRes = await client.query('SELECT * FROM waste_records');
+    if (wRes.rows.length > 0) {
+      wasteRecords.length = 0;
+      wRes.rows.forEach(r => wasteRecords.push({
+        id: r.id,
+        market_id: r.market_id,
+        category_id: r.category_id,
+        quantity_kg: Number(r.quantity_kg),
+        description: r.description,
+        record_date: r.record_date?.toISOString?.().split('T')[0] || String(r.record_date),
+        status: r.status,
+        recommended_pathway: r.recommended_pathway,
+        estimated_value: Number(r.estimated_value),
+        created_by: r.created_by,
+        created_at: r.created_at?.toISOString?.() || String(r.created_at),
+        updated_at: r.updated_at?.toISOString?.() || String(r.updated_at),
+      }));
+    }
+
+    // Pickup requests
+    const pRes = await client.query('SELECT * FROM pickup_requests');
+    if (pRes.rows.length > 0) {
+      pickupRequests.length = 0;
+      pRes.rows.forEach(r => pickupRequests.push({
+        id: r.id,
+        waste_record_id: r.waste_record_id,
+        market_id: r.market_id,
+        collector_id: r.collector_id,
+        status: r.status,
+        requested_at: r.requested_at?.toISOString?.() || String(r.requested_at),
+        accepted_at: r.accepted_at?.toISOString?.() || r.accepted_at,
+        collected_at: r.collected_at?.toISOString?.() || r.collected_at,
+        notes: r.notes,
+        created_at: r.created_at?.toISOString?.() || String(r.created_at),
+        updated_at: r.updated_at?.toISOString?.() || String(r.updated_at),
+      }));
+    }
+
+    client.release();
+    console.log('Supabase sync complete.');
+  } catch (err: any) {
+    console.warn('Supabase sync notice (using memory store):', err.message);
+  }
+}
+
+// ==========================================
 // Express App & Middleware
 // ==========================================
 const app = express();
@@ -699,7 +892,10 @@ function authMiddleware(req: express.Request, res: express.Response, next: expre
 function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const user = (req as any).user as Profile | null;
   if (!user) {
-    return res.status(401).json({ detail: 'Not authenticated' });
+    return res.status(401).json({
+      error: 'Not authenticated. Please log in.',
+      detail: 'Not authenticated. Please log in.',
+    });
   }
   next();
 }
@@ -708,10 +904,16 @@ function requireRole(roles: string[]) {
   return (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const user = (req as any).user as Profile | null;
     if (!user) {
-      return res.status(401).json({ detail: 'Not authenticated' });
+      return res.status(401).json({
+        error: 'Not authenticated. Please log in.',
+        detail: 'Not authenticated. Please log in.',
+      });
     }
     if (!roles.includes(user.role)) {
-      return res.status(403).json({ detail: 'Insufficient permissions' });
+      return res.status(403).json({
+        error: `Insufficient permissions. Allowed roles: ${roles.join(', ')}`,
+        detail: `Insufficient permissions. Allowed roles: ${roles.join(', ')}`,
+      });
     }
     next();
   };
@@ -731,7 +933,6 @@ app.get('/health', (req, res) => {
 // ==========================================
 const apiRouter = express.Router();
 
-// Helper to format user response
 function formatUser(u: Profile) {
   return {
     id: u.id,
@@ -744,60 +945,156 @@ function formatUser(u: Profile) {
   };
 }
 
-// 1. Auth routes
-apiRouter.post('/auth/register', (req, res) => {
-  const { name, email, phone, role, password } = req.body;
-  if (!email || !password || !name) {
-    return res.status(400).json({ detail: 'Name, email, and password are required.' });
-  }
-  const normEmail = email.trim().toLowerCase();
-  if (profiles.some(p => p.email === normEmail)) {
-    return res.status(400).json({ detail: 'A user with this email address already exists.' });
-  }
-  const normalizedRole = (role || 'MARKET_MANAGER').trim().toUpperCase();
-  if (!['ADMIN', 'MARKET_MANAGER', 'COLLECTOR'].includes(normalizedRole)) {
-    return res.status(400).json({ detail: "Invalid role. Must be 'ADMIN', 'MARKET_MANAGER', or 'COLLECTOR'." });
-  }
+// ------------------------------------------
+// 1. Authentication Routes (Audited & Robust)
+// ------------------------------------------
+apiRouter.post('/auth/register', async (req, res) => {
+  try {
+    const { name, email, phone, role, password } = req.body;
 
-  const salt = bcrypt.genSaltSync(10);
-  const now = new Date().toISOString();
-  const newUser: Profile = {
-    id: `user-${Date.now()}`,
-    name: name.trim(),
-    email: normEmail,
-    phone: phone ? phone.trim() : null,
-    role: normalizedRole as any,
-    hashed_password: bcrypt.hashSync(password, salt),
-    created_at: now,
-    updated_at: now,
-  };
-  profiles.push(newUser);
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Name is required.', detail: 'Name is required.' });
+    }
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ error: 'Email is required.', detail: 'Email is required.' });
+    }
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({
+        error: 'Password must be at least 6 characters.',
+        detail: 'Password must be at least 6 characters.',
+      });
+    }
 
-  const token = createToken(newUser);
-  res.status(201).json({
-    access_token: token,
-    token_type: 'bearer',
-    user: formatUser(newUser),
-  });
+    const normEmail = email.trim().toLowerCase();
+
+    // Check duplicate in memory
+    if (profiles.some(p => p.email.toLowerCase() === normEmail)) {
+      return res.status(400).json({
+        error: 'A user with this email address already exists.',
+        detail: 'A user with this email address already exists.',
+      });
+    }
+
+    // Check duplicate in Supabase DB if active
+    const dbCheck = await tryDbQuery('SELECT id FROM profiles WHERE LOWER(email) = $1', [normEmail]);
+    if (dbCheck && dbCheck.rows && dbCheck.rows.length > 0) {
+      return res.status(400).json({
+        error: 'A user with this email address already exists in database.',
+        detail: 'A user with this email address already exists in database.',
+      });
+    }
+
+    // Strictly validate Enum constraint: CHECK (role IN ('ADMIN', 'MARKET_MANAGER', 'COLLECTOR'))
+    const VALID_ROLES = ['ADMIN', 'MARKET_MANAGER', 'COLLECTOR'] as const;
+    const normalizedRole = String(role || 'MARKET_MANAGER').trim().toUpperCase() as 'ADMIN' | 'MARKET_MANAGER' | 'COLLECTOR';
+    if (!VALID_ROLES.includes(normalizedRole)) {
+      return res.status(400).json({
+        error: "Invalid role. Role must strictly be 'ADMIN', 'MARKET_MANAGER', or 'COLLECTOR'.",
+        detail: "Invalid role. Role must strictly be 'ADMIN', 'MARKET_MANAGER', or 'COLLECTOR'.",
+      });
+    }
+
+    // Async bcrypt hash (10 salt rounds)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const now = new Date().toISOString();
+    const newId = crypto.randomUUID();
+
+    const newUser: Profile = {
+      id: newId,
+      name: name.trim(),
+      email: normEmail,
+      phone: phone ? String(phone).trim() : null,
+      role: normalizedRole,
+      hashed_password: hashedPassword,
+      created_at: now,
+      updated_at: now,
+    };
+
+    // Insert into Supabase if DB active
+    await tryDbQuery(
+      `INSERT INTO profiles (id, name, email, phone, role, hashed_password, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [newUser.id, newUser.name, newUser.email, newUser.phone, newUser.role, newUser.hashed_password, newUser.created_at, newUser.updated_at]
+    );
+
+    profiles.push(newUser);
+
+    const token = createToken(newUser);
+    return res.status(201).json({
+      access_token: token,
+      token_type: 'bearer',
+      user: formatUser(newUser),
+    });
+  } catch (err: any) {
+    return handleDbError(err, res, 'Failed to register user.');
+  }
 });
 
-apiRouter.post('/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(401).json({ detail: 'Incorrect email or password.' });
-  }
-  const normEmail = email.trim().toLowerCase();
-  const user = profiles.find(p => p.email === normEmail);
-  if (!user || !bcrypt.compareSync(password, user.hashed_password)) {
-    return res.status(401).json({ detail: 'Incorrect email or password.' });
-  }
+apiRouter.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Both email and password are required.',
+        detail: 'Both email and password are required.',
+      });
+    }
 
-  const token = createToken(user);
-  res.json({
-    access_token: token,
-    token_type: 'bearer',
-    user: formatUser(user),
-  });
+    const normEmail = String(email).trim().toLowerCase();
+
+    // Check memory first
+    let user = profiles.find(p => p.email.toLowerCase() === normEmail);
+
+    // If not found in memory, query Supabase DB
+    if (!user) {
+      const dbRes = await tryDbQuery('SELECT * FROM profiles WHERE LOWER(email) = $1', [normEmail]);
+      if (dbRes && dbRes.rows && dbRes.rows.length > 0) {
+        const row = dbRes.rows[0];
+        user = {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          phone: row.phone,
+          role: row.role,
+          hashed_password: row.hashed_password,
+          created_at: row.created_at?.toISOString?.() || String(row.created_at),
+          updated_at: row.updated_at?.toISOString?.() || String(row.updated_at),
+        };
+        profiles.push(user);
+      }
+    }
+
+    if (!user) {
+      return res.status(401).json({
+        error: 'Incorrect email or password.',
+        detail: 'Incorrect email or password.',
+      });
+    }
+
+    // Async bcrypt comparison
+    const isMatch = await bcrypt.compare(String(password), user.hashed_password);
+    if (!isMatch) {
+      return res.status(401).json({
+        error: 'Incorrect email or password.',
+        detail: 'Incorrect email or password.',
+      });
+    }
+
+    const token = createToken(user);
+    return res.json({
+      access_token: token,
+      token_type: 'bearer',
+      user: formatUser(user),
+    });
+  } catch (err: any) {
+    console.error('[Login Error]', err);
+    return res.status(500).json({
+      error: 'An unexpected authentication error occurred.',
+      detail: err.message,
+    });
+  }
 });
 
 apiRouter.get('/auth/me', requireAuth, (req, res) => {
@@ -805,29 +1102,51 @@ apiRouter.get('/auth/me', requireAuth, (req, res) => {
 });
 
 apiRouter.get('/auth/users', requireRole(['ADMIN']), (req, res) => {
-  const role = req.query.role as string | undefined;
-  let list = profiles;
-  if (role) {
-    list = list.filter(p => p.role === role.trim().toUpperCase());
+  try {
+    const role = req.query.role as string | undefined;
+    let list = profiles;
+    if (role) {
+      list = list.filter(p => p.role === role.trim().toUpperCase());
+    }
+    res.json(list.map(formatUser));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch users', detail: err.message });
   }
-  res.json(list.map(formatUser));
 });
 
-apiRouter.put('/auth/users/:id/role', requireRole(['ADMIN']), (req, res) => {
-  const newRole = ((req.query.new_role || req.body.new_role || '') as string).trim().toUpperCase();
-  if (!['ADMIN', 'MARKET_MANAGER', 'COLLECTOR'].includes(newRole)) {
-    return res.status(400).json({ detail: 'Invalid role specified.' });
+apiRouter.put('/auth/users/:id/role', requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const newRole = ((req.query.new_role || req.body.new_role || '') as string).trim().toUpperCase();
+    const VALID_ROLES = ['ADMIN', 'MARKET_MANAGER', 'COLLECTOR'];
+    if (!VALID_ROLES.includes(newRole)) {
+      return res.status(400).json({
+        error: "Invalid role specified. Must be 'ADMIN', 'MARKET_MANAGER', or 'COLLECTOR'.",
+        detail: "Invalid role specified.",
+      });
+    }
+
+    const user = profiles.find(p => p.id === req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.', detail: 'User not found.' });
+    }
+
+    const now = new Date().toISOString();
+    user.role = newRole as any;
+    user.updated_at = now;
+
+    if (pool) {
+      await pool.query('UPDATE profiles SET role = $1, updated_at = $2 WHERE id = $3', [newRole, now, user.id]);
+    }
+
+    res.json(formatUser(user));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to update user role.');
   }
-  const user = profiles.find(p => p.id === req.params.id);
-  if (!user) {
-    return res.status(404).json({ detail: 'User not found.' });
-  }
-  user.role = newRole as any;
-  user.updated_at = new Date().toISOString();
-  res.json(formatUser(user));
 });
 
-// 2. Markets routes
+// ------------------------------------------
+// 2. Markets Routes
+// ------------------------------------------
 function formatMarket(m: Market) {
   const mgr = m.manager_id ? profiles.find(p => p.id === m.manager_id) : null;
   return {
@@ -845,124 +1164,196 @@ function formatMarket(m: Market) {
 }
 
 apiRouter.get('/markets', (req, res) => {
-  const { area, status_filter } = req.query;
-  let list = markets;
-  if (status_filter) {
-    list = list.filter(m => m.status === (status_filter as string).toUpperCase());
+  try {
+    const { area, status_filter } = req.query;
+    let list = markets;
+    if (status_filter) {
+      list = list.filter(m => m.status === (status_filter as string).toUpperCase());
+    }
+    if (area) {
+      list = list.filter(m => m.area.toLowerCase().includes((area as string).toLowerCase()));
+    }
+    res.json(list.map(formatMarket));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to list markets', detail: err.message });
   }
-  if (area) {
-    list = list.filter(m => m.area.toLowerCase().includes((area as string).toLowerCase()));
-  }
-  res.json(list.map(formatMarket));
 });
 
 apiRouter.get('/markets/my/market', requireAuth, (req, res) => {
-  const user = (req as any).user as Profile;
-  let market = markets.find(m => m.manager_id === user.id);
-  if (!market && user.role === 'ADMIN') {
-    market = markets[0];
+  try {
+    const user = (req as any).user as Profile;
+    let market = markets.find(m => m.manager_id === user.id);
+    if (!market && user.role === 'ADMIN') {
+      market = markets[0];
+    }
+    if (!market) {
+      return res.json(null);
+    }
+    res.json(formatMarket(market));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch market', detail: err.message });
   }
-  if (!market) {
-    return res.json(null);
-  }
-  res.json(formatMarket(market));
 });
 
 apiRouter.get('/markets/:id', (req, res) => {
-  const m = markets.find(x => x.id === req.params.id);
-  if (!m) return res.status(404).json({ detail: 'Market not found.' });
-  res.json(formatMarket(m));
-});
-
-apiRouter.post('/markets', requireRole(['ADMIN']), (req, res) => {
-  const { name, location, area, manager_id, contact_phone, status } = req.body;
-  if (!name || !location || !area) {
-    return res.status(400).json({ detail: 'Name, location, and area are required.' });
+  try {
+    const m = markets.find(x => x.id === req.params.id);
+    if (!m) return res.status(404).json({ error: 'Market not found.', detail: 'Market not found.' });
+    res.json(formatMarket(m));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to get market', detail: err.message });
   }
-  const now = new Date().toISOString();
-  const newM: Market = {
-    id: `market-${Date.now()}`,
-    name: name.trim(),
-    location: location.trim(),
-    area: area.trim(),
-    manager_id: manager_id || null,
-    contact_phone: contact_phone ? contact_phone.trim() : null,
-    status: (status || 'ACTIVE').toUpperCase(),
-    created_at: now,
-    updated_at: now,
-  };
-  markets.push(newM);
-  res.status(201).json(formatMarket(newM));
 });
 
-apiRouter.put('/markets/:id', requireAuth, (req, res) => {
-  const m = markets.find(x => x.id === req.params.id);
-  if (!m) return res.status(404).json({ detail: 'Market not found.' });
+apiRouter.post('/markets', requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { name, location, area, manager_id, contact_phone, status } = req.body;
+    if (!name || !location || !area) {
+      return res.status(400).json({
+        error: 'Name, location, and area are required fields.',
+        detail: 'Missing required market fields.',
+      });
+    }
 
-  const user = (req as any).user as Profile;
-  if (user.role !== 'ADMIN' && m.manager_id !== user.id) {
-    return res.status(403).json({ detail: 'Not authorized to edit this market.' });
+    const VALID_STATUSES = ['ACTIVE', 'INACTIVE'];
+    const normStatus = (status || 'ACTIVE').trim().toUpperCase();
+    if (!VALID_STATUSES.includes(normStatus)) {
+      return res.status(400).json({
+        error: "Status must strictly be 'ACTIVE' or 'INACTIVE'.",
+        detail: 'Invalid status check constraint.',
+      });
+    }
+
+    const now = new Date().toISOString();
+    const newM: Market = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      location: location.trim(),
+      area: area.trim(),
+      manager_id: manager_id || null,
+      contact_phone: contact_phone ? contact_phone.trim() : null,
+      status: normStatus as any,
+      created_at: now,
+      updated_at: now,
+    };
+
+    if (pool) {
+      await pool.query(
+        `INSERT INTO markets (id, name, location, area, manager_id, contact_phone, status, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [newM.id, newM.name, newM.location, newM.area, newM.manager_id, newM.contact_phone, newM.status, newM.created_at, newM.updated_at]
+      );
+    }
+
+    markets.push(newM);
+    res.status(201).json(formatMarket(newM));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to create market.');
   }
-
-  const { name, location, area, contact_phone, status, manager_id } = req.body;
-  if (name != null) m.name = name.trim();
-  if (location != null) m.location = location.trim();
-  if (area != null) m.area = area.trim();
-  if (contact_phone != null) m.contact_phone = contact_phone.trim();
-  if (status != null) m.status = status.toUpperCase();
-  if (user.role === 'ADMIN' && manager_id !== undefined) m.manager_id = manager_id;
-  m.updated_at = new Date().toISOString();
-
-  res.json(formatMarket(m));
 });
 
-// 3. Waste routes
+apiRouter.put('/markets/:id', requireAuth, async (req, res) => {
+  try {
+    const m = markets.find(x => x.id === req.params.id);
+    if (!m) return res.status(404).json({ error: 'Market not found.', detail: 'Market not found.' });
+
+    const user = (req as any).user as Profile;
+    if (user.role !== 'ADMIN' && m.manager_id !== user.id) {
+      return res.status(403).json({ error: 'Not authorized to edit this market.', detail: 'Forbidden.' });
+    }
+
+    const { name, location, area, contact_phone, status, manager_id } = req.body;
+    if (name != null) m.name = name.trim();
+    if (location != null) m.location = location.trim();
+    if (area != null) m.area = area.trim();
+    if (contact_phone != null) m.contact_phone = contact_phone.trim();
+    if (status != null) {
+      const s = status.toUpperCase();
+      if (['ACTIVE', 'INACTIVE'].includes(s)) m.status = s;
+    }
+    if (user.role === 'ADMIN' && manager_id !== undefined) m.manager_id = manager_id;
+    m.updated_at = new Date().toISOString();
+
+    if (pool) {
+      await pool.query(
+        `UPDATE markets SET name = $1, location = $2, area = $3, contact_phone = $4, status = $5, manager_id = $6, updated_at = $7 WHERE id = $8`,
+        [m.name, m.location, m.area, m.contact_phone, m.status, m.manager_id, m.updated_at, m.id]
+      );
+    }
+
+    res.json(formatMarket(m));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to update market.');
+  }
+});
+
+// ------------------------------------------
+// 3. Waste Management & Categories
+// ------------------------------------------
 apiRouter.get('/waste/categories', (req, res) => {
   res.json(wasteCategories);
 });
 
-apiRouter.post('/waste/categories', requireRole(['ADMIN']), (req, res) => {
-  const { name, description, waste_type, resource_pathway, estimated_value_per_kg, recyclable, organic } = req.body;
-  if (!name || !waste_type || !resource_pathway) {
-    return res.status(400).json({ detail: 'Missing required category fields.' });
+apiRouter.post('/waste/categories', requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const { name, description, waste_type, resource_pathway, estimated_value_per_kg, recyclable, organic } = req.body;
+    if (!name || !waste_type || !resource_pathway) {
+      return res.status(400).json({ error: 'Missing required category fields.', detail: 'Name, waste_type, and resource_pathway required.' });
+    }
+
+    const now = new Date().toISOString();
+    const newCat: WasteCategory = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      description: description ? description.trim() : null,
+      waste_type: waste_type.trim(),
+      resource_pathway: resource_pathway.trim(),
+      estimated_value_per_kg: Number(estimated_value_per_kg) || 0,
+      recyclable: Boolean(recyclable),
+      organic: Boolean(organic),
+      created_at: now,
+    };
+
+    if (pool) {
+      await pool.query(
+        `INSERT INTO waste_categories (id, name, description, waste_type, resource_pathway, estimated_value_per_kg, recyclable, organic, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [newCat.id, newCat.name, newCat.description, newCat.waste_type, newCat.resource_pathway, newCat.estimated_value_per_kg, newCat.recyclable, newCat.organic, newCat.created_at]
+      );
+    }
+
+    wasteCategories.push(newCat);
+    res.status(201).json(newCat);
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to create waste category.');
   }
-  const newCat: WasteCategory = {
-    id: `cat-${Date.now()}`,
-    name: name.trim(),
-    description: description ? description.trim() : null,
-    waste_type: waste_type.trim(),
-    resource_pathway: resource_pathway.trim(),
-    estimated_value_per_kg: Number(estimated_value_per_kg) || 0,
-    recyclable: !!recyclable,
-    organic: !!organic,
-    created_at: new Date().toISOString(),
-  };
-  wasteCategories.push(newCat);
-  res.status(201).json(newCat);
 });
 
 apiRouter.post('/waste/recommend', (req, res) => {
-  const { category_id, category_name, quantity_kg } = req.body;
-  let catName = category_name;
-  let unitRate: number | undefined;
-
-  if (category_id) {
-    const cat = wasteCategories.find(c => c.id === category_id);
-    if (cat) {
-      catName = cat.name;
-      unitRate = cat.estimated_value_per_kg;
-    }
-  }
-
-  if (!catName) {
-    return res.status(400).json({ detail: 'Either category_id or category_name must be provided.' });
-  }
-
   try {
+    const { category_id, category_name, quantity_kg } = req.body;
+    let catName = category_name;
+    let unitRate: number | undefined;
+
+    if (category_id) {
+      const cat = wasteCategories.find(c => c.id === category_id);
+      if (cat) {
+        catName = cat.name;
+        unitRate = cat.estimated_value_per_kg;
+      }
+    }
+
+    if (!catName) {
+      return res.status(400).json({
+        error: 'Either category_id or category_name must be provided.',
+        detail: 'Missing category parameter.',
+      });
+    }
+
     const rec = getRecommendation(catName, Number(quantity_kg), unitRate);
     res.json(rec);
   } catch (err: any) {
-    res.status(400).json({ detail: err.message || 'Invalid quantity' });
+    res.status(400).json({ error: err.message, detail: err.message });
   }
 });
 
@@ -988,69 +1379,103 @@ function formatWasteRecord(w: WasteRecord) {
     creator_name: creator ? creator.name : null,
     created_at: w.created_at,
     updated_at: w.updated_at,
-    has_pickup_request: !!pickup,
+    has_pickup_request: Boolean(pickup),
     pickup_status: pickup ? pickup.status : null,
   };
 }
 
 apiRouter.get('/waste', (req, res) => {
-  const { market_id, category_id, status_filter, limit } = req.query;
-  let list = wasteRecords;
-  if (market_id) list = list.filter(w => w.market_id === market_id);
-  if (category_id) list = list.filter(w => w.category_id === category_id);
-  if (status_filter) list = list.filter(w => w.status === (status_filter as string).toUpperCase());
+  try {
+    const { market_id, category_id, status_filter, limit } = req.query;
+    let list = wasteRecords;
+    if (market_id) list = list.filter(w => w.market_id === market_id);
+    if (category_id) list = list.filter(w => w.category_id === category_id);
+    if (status_filter) list = list.filter(w => w.status === (status_filter as string).toUpperCase());
 
-  // Order descending by created_at
-  const sorted = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  const capped = limit ? sorted.slice(0, Number(limit)) : sorted;
-  res.json(capped.map(formatWasteRecord));
+    const sorted = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const capped = limit ? sorted.slice(0, Number(limit)) : sorted;
+    res.json(capped.map(formatWasteRecord));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve waste records', detail: err.message });
+  }
 });
 
 apiRouter.get('/waste/:id', (req, res) => {
-  const w = wasteRecords.find(x => x.id === req.params.id);
-  if (!w) return res.status(404).json({ detail: 'Waste record not found.' });
-  res.json(formatWasteRecord(w));
-});
-
-apiRouter.post('/waste', requireRole(['ADMIN', 'MARKET_MANAGER']), (req, res) => {
-  const user = (req as any).user as Profile;
-  const { market_id, category_id, quantity_kg, description, record_date } = req.body;
-
-  const market = markets.find(m => m.id === market_id);
-  if (!market) return res.status(404).json({ detail: 'Specified market does not exist.' });
-  if (user.role !== 'ADMIN' && market.manager_id !== user.id) {
-    return res.status(403).json({ detail: 'You can only register waste for your assigned market.' });
+  try {
+    const w = wasteRecords.find(x => x.id === req.params.id);
+    if (!w) return res.status(404).json({ error: 'Waste record not found.', detail: 'Waste record not found.' });
+    res.json(formatWasteRecord(w));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve waste record', detail: err.message });
   }
-
-  const cat = wasteCategories.find(c => c.id === category_id);
-  if (!cat) return res.status(404).json({ detail: 'Specified waste category does not exist.' });
-
-  const qty = Number(quantity_kg);
-  if (qty <= 0) return res.status(400).json({ detail: 'Waste quantity must be greater than 0.' });
-
-  const rec = getRecommendation(cat.name, qty, cat.estimated_value_per_kg);
-  const now = new Date().toISOString();
-
-  const newWaste: WasteRecord = {
-    id: `waste-${Date.now()}`,
-    market_id: market.id,
-    category_id: cat.id,
-    quantity_kg: qty,
-    description: description ? description.trim() : null,
-    record_date: record_date || now.split('T')[0],
-    status: 'AVAILABLE',
-    recommended_pathway: rec.recommended_pathway,
-    estimated_value: rec.estimated_value,
-    created_by: user.id,
-    created_at: now,
-    updated_at: now,
-  };
-  wasteRecords.push(newWaste);
-
-  res.status(201).json(formatWasteRecord(newWaste));
 });
 
-// 4. Pickup routes
+apiRouter.post('/waste', requireRole(['ADMIN', 'MARKET_MANAGER']), async (req, res) => {
+  try {
+    const user = (req as any).user as Profile;
+    const { market_id, category_id, quantity_kg, description, record_date } = req.body;
+
+    const market = markets.find(m => m.id === market_id);
+    if (!market) {
+      return res.status(404).json({ error: 'Specified market does not exist.', detail: 'Market not found.' });
+    }
+    if (user.role !== 'ADMIN' && market.manager_id !== user.id) {
+      return res.status(403).json({
+        error: 'You can only register waste for your assigned market.',
+        detail: 'Unauthorized market assignment.',
+      });
+    }
+
+    const cat = wasteCategories.find(c => c.id === category_id);
+    if (!cat) {
+      return res.status(404).json({ error: 'Specified waste category does not exist.', detail: 'Category not found.' });
+    }
+
+    const qty = Number(quantity_kg);
+    if (isNaN(qty) || qty <= 0) {
+      return res.status(400).json({
+        error: 'Waste quantity must be strictly greater than 0 KG.',
+        detail: 'Invalid quantity.',
+      });
+    }
+
+    const rec = getRecommendation(cat.name, qty, cat.estimated_value_per_kg);
+    const now = new Date().toISOString();
+    const newId = crypto.randomUUID();
+
+    const newWaste: WasteRecord = {
+      id: newId,
+      market_id: market.id,
+      category_id: cat.id,
+      quantity_kg: qty,
+      description: description ? description.trim() : null,
+      record_date: record_date || now.split('T')[0],
+      status: 'AVAILABLE',
+      recommended_pathway: rec.recommended_pathway,
+      estimated_value: rec.estimated_value,
+      created_by: user.id,
+      created_at: now,
+      updated_at: now,
+    };
+
+    if (pool) {
+      await pool.query(
+        `INSERT INTO waste_records (id, market_id, category_id, quantity_kg, description, record_date, status, recommended_pathway, estimated_value, created_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [newWaste.id, newWaste.market_id, newWaste.category_id, newWaste.quantity_kg, newWaste.description, newWaste.record_date, newWaste.status, newWaste.recommended_pathway, newWaste.estimated_value, newWaste.created_by, newWaste.created_at, newWaste.updated_at]
+      );
+    }
+
+    wasteRecords.push(newWaste);
+    res.status(201).json(formatWasteRecord(newWaste));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to create waste record.');
+  }
+});
+
+// ------------------------------------------
+// 4. Pickup Workflow
+// ------------------------------------------
 function formatPickup(p: PickupRequest) {
   const waste = wasteRecords.find(w => w.id === p.waste_record_id);
   const market = markets.find(m => m.id === p.market_id);
@@ -1078,382 +1503,504 @@ function formatPickup(p: PickupRequest) {
   };
 }
 
-apiRouter.post('/pickups', requireRole(['ADMIN', 'MARKET_MANAGER']), (req, res) => {
-  const { waste_record_id, notes } = req.body;
-  const waste = wasteRecords.find(w => w.id === waste_record_id);
-  if (!waste) return res.status(404).json({ detail: 'Waste record not found.' });
+apiRouter.post('/pickups', requireRole(['ADMIN', 'MARKET_MANAGER']), async (req, res) => {
+  try {
+    const { waste_record_id, notes } = req.body;
+    const waste = wasteRecords.find(w => w.id === waste_record_id);
+    if (!waste) {
+      return res.status(404).json({ error: 'Waste record not found.', detail: 'Waste record not found.' });
+    }
 
-  const existing = pickupRequests.find(p => p.waste_record_id === waste_record_id);
-  if (existing) return res.status(400).json({ detail: 'A pickup request already exists for this waste record.' });
+    const existing = pickupRequests.find(p => p.waste_record_id === waste_record_id);
+    if (existing) {
+      return res.status(400).json({
+        error: 'A pickup request already exists for this waste record.',
+        detail: 'Duplicate pickup request.',
+      });
+    }
 
-  const now = new Date().toISOString();
-  const pickup: PickupRequest = {
-    id: `pickup-${Date.now()}`,
-    waste_record_id: waste.id,
-    market_id: waste.market_id,
-    status: 'AVAILABLE',
-    requested_at: now,
-    notes: notes || null,
-    created_at: now,
-    updated_at: now,
-  };
-  pickupRequests.push(pickup);
-  res.status(201).json(formatPickup(pickup));
+    const now = new Date().toISOString();
+    const newId = crypto.randomUUID();
+
+    const pickup: PickupRequest = {
+      id: newId,
+      waste_record_id: waste.id,
+      market_id: waste.market_id,
+      status: 'AVAILABLE',
+      requested_at: now,
+      notes: notes ? notes.trim() : null,
+      created_at: now,
+      updated_at: now,
+    };
+
+    if (pool) {
+      await pool.query(
+        `INSERT INTO pickup_requests (id, waste_record_id, market_id, status, requested_at, notes, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [pickup.id, pickup.waste_record_id, pickup.market_id, pickup.status, pickup.requested_at, pickup.notes, pickup.created_at, pickup.updated_at]
+      );
+    }
+
+    pickupRequests.push(pickup);
+    res.status(201).json(formatPickup(pickup));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to create pickup request.');
+  }
 });
 
 apiRouter.get('/pickups/available', (req, res) => {
-  const { area } = req.query;
-  let list = pickupRequests.filter(p => p.status === 'AVAILABLE');
-  if (area) {
-    list = list.filter(p => {
-      const m = markets.find(x => x.id === p.market_id);
-      return m && m.area.toLowerCase().includes((area as string).toLowerCase());
-    });
+  try {
+    const { area } = req.query;
+    let list = pickupRequests.filter(p => p.status === 'AVAILABLE');
+    if (area) {
+      list = list.filter(p => {
+        const m = markets.find(x => x.id === p.market_id);
+        return m && m.area.toLowerCase().includes((area as string).toLowerCase());
+      });
+    }
+    const sorted = [...list].sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime());
+    res.json(sorted.map(formatPickup));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch available pickups', detail: err.message });
   }
-  const sorted = [...list].sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime());
-  res.json(sorted.map(formatPickup));
 });
 
 apiRouter.get('/pickups/my', requireRole(['ADMIN', 'COLLECTOR']), (req, res) => {
-  const user = (req as any).user as Profile;
-  const statusFilter = req.query.status_filter as string | undefined;
-  let list = pickupRequests.filter(p => p.collector_id === user.id);
-  if (statusFilter) {
-    list = list.filter(p => p.status === statusFilter.toUpperCase());
+  try {
+    const user = (req as any).user as Profile;
+    const statusFilter = req.query.status_filter as string | undefined;
+    let list = pickupRequests.filter(p => p.collector_id === user.id);
+    if (statusFilter) {
+      list = list.filter(p => p.status === statusFilter.toUpperCase());
+    }
+    const sorted = [...list].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    res.json(sorted.map(formatPickup));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch collector pickups', detail: err.message });
   }
-  const sorted = [...list].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-  res.json(sorted.map(formatPickup));
 });
 
 apiRouter.get('/pickups', requireAuth, (req, res) => {
-  const { market_id, status_filter } = req.query;
-  let list = pickupRequests;
-  if (market_id) list = list.filter(p => p.market_id === market_id);
-  if (status_filter) list = list.filter(p => p.status === (status_filter as string).toUpperCase());
-  const sorted = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  res.json(sorted.map(formatPickup));
+  try {
+    const { market_id, status_filter } = req.query;
+    let list = pickupRequests;
+    if (market_id) list = list.filter(p => p.market_id === market_id);
+    if (status_filter) list = list.filter(p => p.status === (status_filter as string).toUpperCase());
+    const sorted = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(sorted.map(formatPickup));
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to list pickups', detail: err.message });
+  }
 });
 
-apiRouter.post('/pickups/:id/accept', requireRole(['ADMIN', 'COLLECTOR']), (req, res) => {
-  const user = (req as any).user as Profile;
-  const pickup = pickupRequests.find(p => p.id === req.params.id);
-  if (!pickup) return res.status(404).json({ detail: 'Pickup request not found.' });
-  if (pickup.status !== 'AVAILABLE') {
-    return res.status(409).json({ detail: `Pickup is no longer available. Current status: ${pickup.status}.` });
+apiRouter.post('/pickups/:id/accept', requireRole(['ADMIN', 'COLLECTOR']), async (req, res) => {
+  try {
+    const user = (req as any).user as Profile;
+    const pickup = pickupRequests.find(p => p.id === req.params.id);
+    if (!pickup) return res.status(404).json({ error: 'Pickup request not found.', detail: 'Pickup request not found.' });
+
+    if (pickup.status !== 'AVAILABLE') {
+      return res.status(409).json({
+        error: `Pickup is no longer available. Current status: ${pickup.status}.`,
+        detail: 'Pickup already claimed or resolved.',
+      });
+    }
+
+    const now = new Date().toISOString();
+    pickup.collector_id = user.id;
+    pickup.status = 'ACCEPTED';
+    pickup.accepted_at = now;
+    pickup.updated_at = now;
+
+    const waste = wasteRecords.find(w => w.id === pickup.waste_record_id);
+    if (waste) {
+      waste.status = 'ACCEPTED';
+      waste.updated_at = now;
+    }
+
+    if (pool) {
+      await pool.query(
+        'UPDATE pickup_requests SET collector_id = $1, status = $2, accepted_at = $3, updated_at = $4 WHERE id = $5',
+        [pickup.collector_id, pickup.status, pickup.accepted_at, pickup.updated_at, pickup.id]
+      );
+      if (waste) {
+        await pool.query('UPDATE waste_records SET status = $1, updated_at = $2 WHERE id = $3', ['ACCEPTED', now, waste.id]);
+      }
+    }
+
+    res.json(formatPickup(pickup));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to accept pickup.');
   }
-
-  const now = new Date().toISOString();
-  pickup.collector_id = user.id;
-  pickup.status = 'ACCEPTED';
-  pickup.accepted_at = now;
-  pickup.updated_at = now;
-
-  const waste = wasteRecords.find(w => w.id === pickup.waste_record_id);
-  if (waste) {
-    waste.status = 'ACCEPTED';
-    waste.updated_at = now;
-  }
-
-  res.json(formatPickup(pickup));
 });
 
-apiRouter.post('/pickups/:id/collect', requireRole(['ADMIN', 'COLLECTOR']), (req, res) => {
-  const user = (req as any).user as Profile;
-  const pickup = pickupRequests.find(p => p.id === req.params.id);
-  if (!pickup) return res.status(404).json({ detail: 'Pickup request not found.' });
+apiRouter.post('/pickups/:id/collect', requireRole(['ADMIN', 'COLLECTOR']), async (req, res) => {
+  try {
+    const user = (req as any).user as Profile;
+    const pickup = pickupRequests.find(p => p.id === req.params.id);
+    if (!pickup) return res.status(404).json({ error: 'Pickup request not found.', detail: 'Pickup not found.' });
 
-  if (pickup.collector_id !== user.id && user.role !== 'ADMIN') {
-    return res.status(403).json({ detail: 'You are not authorized to complete a pickup accepted by another collector.' });
+    if (pickup.collector_id !== user.id && user.role !== 'ADMIN') {
+      return res.status(403).json({
+        error: 'You are not authorized to complete a pickup accepted by another collector.',
+        detail: 'Forbidden.',
+      });
+    }
+    if (pickup.status !== 'ACCEPTED') {
+      return res.status(400).json({
+        error: `Cannot mark as collected from current status: ${pickup.status}. Must be ACCEPTED.`,
+        detail: 'Invalid status transition.',
+      });
+    }
+
+    const now = new Date().toISOString();
+    pickup.status = 'COLLECTED';
+    pickup.collected_at = now;
+    pickup.updated_at = now;
+
+    const notes = req.body?.notes;
+    if (notes) {
+      pickup.notes = pickup.notes ? `${pickup.notes} | Note: ${notes}` : notes;
+    }
+
+    const waste = wasteRecords.find(w => w.id === pickup.waste_record_id);
+    if (waste) {
+      waste.status = 'COLLECTED';
+      waste.updated_at = now;
+
+      const cat = wasteCategories.find(c => c.id === waste.category_id);
+      const rec = getRecommendation(cat ? cat.name : 'other', waste.quantity_kg, cat?.estimated_value_per_kg);
+
+      const recycledKg = rec.recyclable ? waste.quantity_kg : 0;
+      const compostedKg = rec.organic && rec.recommended_pathway === 'Composting' ? waste.quantity_kg : 0;
+
+      const impact: ImpactRecord = {
+        id: crypto.randomUUID(),
+        market_id: pickup.market_id,
+        waste_record_id: waste.id,
+        quantity_recovered_kg: waste.quantity_kg,
+        quantity_recycled_kg: recycledKg,
+        quantity_composted_kg: compostedKg,
+        estimated_value: waste.estimated_value,
+        co2_impact_estimate: rec.co2_impact_estimate,
+        recorded_at: now,
+      };
+      impactRecords.push(impact);
+
+      if (pool) {
+        await pool.query(
+          'UPDATE pickup_requests SET status = $1, collected_at = $2, notes = $3, updated_at = $4 WHERE id = $5',
+          [pickup.status, pickup.collected_at, pickup.notes, pickup.updated_at, pickup.id]
+        );
+        await pool.query('UPDATE waste_records SET status = $1, updated_at = $2 WHERE id = $3', ['COLLECTED', now, waste.id]);
+        await pool.query(
+          `INSERT INTO impact_records (id, market_id, waste_record_id, quantity_recovered_kg, quantity_recycled_kg, quantity_composted_kg, estimated_value, co2_impact_estimate, recorded_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [impact.id, impact.market_id, impact.waste_record_id, impact.quantity_recovered_kg, impact.quantity_recycled_kg, impact.quantity_composted_kg, impact.estimated_value, impact.co2_impact_estimate, impact.recorded_at]
+        );
+      }
+    }
+
+    res.json(formatPickup(pickup));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to complete pickup.');
   }
-  if (pickup.status !== 'ACCEPTED') {
-    return res.status(400).json({ detail: `Cannot mark as collected from current status: ${pickup.status}. Must be ACCEPTED.` });
-  }
-
-  const now = new Date().toISOString();
-  pickup.status = 'COLLECTED';
-  pickup.collected_at = now;
-  pickup.updated_at = now;
-
-  const notes = req.body?.notes;
-  if (notes) {
-    pickup.notes = pickup.notes ? `${pickup.notes} | Note: ${notes}` : notes;
-  }
-
-  const waste = wasteRecords.find(w => w.id === pickup.waste_record_id);
-  if (waste) {
-    waste.status = 'COLLECTED';
-    waste.updated_at = now;
-
-    const cat = wasteCategories.find(c => c.id === waste.category_id);
-    const rec = getRecommendation(cat ? cat.name : 'other', waste.quantity_kg, cat?.estimated_value_per_kg);
-
-    const recycledKg = rec.recyclable ? waste.quantity_kg : 0;
-    const compostedKg = rec.organic && rec.recommended_pathway === 'Composting' ? waste.quantity_kg : 0;
-
-    const impact: ImpactRecord = {
-      id: `impact-${Date.now()}`,
-      market_id: pickup.market_id,
-      waste_record_id: waste.id,
-      quantity_recovered_kg: waste.quantity_kg,
-      quantity_recycled_kg: recycledKg,
-      quantity_composted_kg: compostedKg,
-      estimated_value: waste.estimated_value,
-      co2_impact_estimate: rec.co2_impact_estimate,
-      recorded_at: now,
-    };
-    impactRecords.push(impact);
-  }
-
-  res.json(formatPickup(pickup));
 });
 
-apiRouter.post('/pickups/:id/cancel', requireAuth, (req, res) => {
-  const pickup = pickupRequests.find(p => p.id === req.params.id);
-  if (!pickup) return res.status(404).json({ detail: 'Pickup not found.' });
-  if (pickup.status === 'COLLECTED') {
-    return res.status(400).json({ detail: 'Cannot cancel a collected pickup.' });
+apiRouter.post('/pickups/:id/cancel', requireAuth, async (req, res) => {
+  try {
+    const pickup = pickupRequests.find(p => p.id === req.params.id);
+    if (!pickup) return res.status(404).json({ error: 'Pickup not found.', detail: 'Pickup not found.' });
+
+    if (pickup.status === 'COLLECTED') {
+      return res.status(400).json({ error: 'Cannot cancel an already collected pickup.', detail: 'Invalid transition.' });
+    }
+
+    const now = new Date().toISOString();
+    pickup.status = 'CANCELLED';
+    pickup.updated_at = now;
+
+    const waste = wasteRecords.find(w => w.id === pickup.waste_record_id);
+    if (waste) {
+      waste.status = 'CANCELLED';
+      waste.updated_at = now;
+    }
+
+    if (pool) {
+      await pool.query('UPDATE pickup_requests SET status = $1, updated_at = $2 WHERE id = $3', ['CANCELLED', now, pickup.id]);
+      if (waste) {
+        await pool.query('UPDATE waste_records SET status = $1, updated_at = $2 WHERE id = $3', ['CANCELLED', now, waste.id]);
+      }
+    }
+
+    res.json(formatPickup(pickup));
+  } catch (err: any) {
+    handleDbError(err, res, 'Failed to cancel pickup.');
   }
-
-  const now = new Date().toISOString();
-  pickup.status = 'CANCELLED';
-  pickup.updated_at = now;
-
-  const waste = wasteRecords.find(w => w.id === pickup.waste_record_id);
-  if (waste) {
-    waste.status = 'CANCELLED';
-    waste.updated_at = now;
-  }
-
-  res.json(formatPickup(pickup));
 });
 
-// 5. Impact routes
+// ------------------------------------------
+// 5. Impact & Analytics
+// ------------------------------------------
 apiRouter.get('/impact/summary', (req, res) => {
-  const totalWaste = wasteRecords.reduce((sum, w) => sum + w.quantity_kg, 0);
-  const totalRecovered = impactRecords.reduce((sum, i) => sum + i.quantity_recovered_kg, 0);
-  const totalRecycled = impactRecords.reduce((sum, i) => sum + i.quantity_recycled_kg, 0);
-  const totalComposted = impactRecords.reduce((sum, i) => sum + i.quantity_composted_kg, 0);
-  const totalValue = impactRecords.reduce((sum, i) => sum + i.estimated_value, 0);
-  const totalCo2 = impactRecords.reduce((sum, i) => sum + i.co2_impact_estimate, 0);
+  try {
+    const totalWaste = wasteRecords.reduce((sum, w) => sum + w.quantity_kg, 0);
+    const totalRecovered = impactRecords.reduce((sum, i) => sum + i.quantity_recovered_kg, 0);
+    const totalRecycled = impactRecords.reduce((sum, i) => sum + i.quantity_recycled_kg, 0);
+    const totalComposted = impactRecords.reduce((sum, i) => sum + i.quantity_composted_kg, 0);
+    const totalValue = impactRecords.reduce((sum, i) => sum + i.estimated_value, 0);
+    const totalCo2 = impactRecords.reduce((sum, i) => sum + i.co2_impact_estimate, 0);
 
-  const totalPickups = pickupRequests.length;
-  const collectedPickups = pickupRequests.filter(p => p.status === 'COLLECTED').length;
-  const completionRate = totalPickups > 0 ? Math.round((collectedPickups / totalPickups) * 1000) / 10 : 0;
+    const totalPickups = pickupRequests.length;
+    const collectedPickups = pickupRequests.filter(p => p.status === 'COLLECTED').length;
+    const completionRate = totalPickups > 0 ? Math.round((collectedPickups / totalPickups) * 1000) / 10 : 0;
 
-  const activeMarkets = markets.filter(m => m.status === 'ACTIVE').length;
-  const activeCollectors = profiles.filter(p => p.role === 'COLLECTOR').length;
+    const activeMarkets = markets.filter(m => m.status === 'ACTIVE').length;
+    const activeCollectors = profiles.filter(p => p.role === 'COLLECTOR').length;
 
-  res.json({
-    total_waste_registered_kg: Math.round(totalWaste * 10) / 10,
-    total_waste_recovered_kg: Math.round(totalRecovered * 10) / 10,
-    total_waste_recycled_kg: Math.round(totalRecycled * 10) / 10,
-    total_waste_composted_kg: Math.round(totalComposted * 10) / 10,
-    total_estimated_value_bdt: Math.round(totalValue * 100) / 100,
-    total_co2_impact_kg: Math.round(totalCo2 * 10) / 10,
-    pickup_completion_rate: completionRate,
-    active_markets_count: activeMarkets,
-    active_collectors_count: activeCollectors,
-  });
+    res.json({
+      total_waste_registered_kg: Math.round(totalWaste * 10) / 10,
+      total_waste_recovered_kg: Math.round(totalRecovered * 10) / 10,
+      total_waste_recycled_kg: Math.round(totalRecycled * 10) / 10,
+      total_waste_composted_kg: Math.round(totalComposted * 10) / 10,
+      total_estimated_value_bdt: Math.round(totalValue * 100) / 100,
+      total_co2_impact_kg: Math.round(totalCo2 * 10) / 10,
+      pickup_completion_rate: completionRate,
+      active_markets_count: activeMarkets,
+      active_collectors_count: activeCollectors,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to compute impact summary', detail: err.message });
+  }
 });
 
 apiRouter.get('/impact/records', (req, res) => {
-  const marketId = req.query.market_id as string | undefined;
-  let list = impactRecords;
-  if (marketId) list = list.filter(i => i.market_id === marketId);
+  try {
+    const marketId = req.query.market_id as string | undefined;
+    let list = impactRecords;
+    if (marketId) list = list.filter(i => i.market_id === marketId);
 
-  const sorted = [...list].sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
-  const results = sorted.map(r => {
-    const waste = wasteRecords.find(w => w.id === r.waste_record_id);
-    const m = markets.find(x => x.id === r.market_id);
-    const cat = waste ? wasteCategories.find(c => c.id === waste.category_id) : null;
-    return {
-      id: r.id,
-      market_id: r.market_id,
-      market_name: m ? m.name : null,
-      waste_record_id: r.waste_record_id,
-      category_name: cat ? cat.name : null,
-      quantity_recovered_kg: r.quantity_recovered_kg,
-      quantity_recycled_kg: r.quantity_recycled_kg,
-      quantity_composted_kg: r.quantity_composted_kg,
-      estimated_value: r.estimated_value,
-      co2_impact_estimate: r.co2_impact_estimate,
-      recorded_at: r.recorded_at,
-    };
-  });
-  res.json(results);
+    const sorted = [...list].sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
+    const results = sorted.map(r => {
+      const waste = wasteRecords.find(w => w.id === r.waste_record_id);
+      const m = markets.find(x => x.id === r.market_id);
+      const cat = waste ? wasteCategories.find(c => c.id === waste.category_id) : null;
+      return {
+        id: r.id,
+        market_id: r.market_id,
+        market_name: m ? m.name : null,
+        waste_record_id: r.waste_record_id,
+        category_name: cat ? cat.name : null,
+        quantity_recovered_kg: r.quantity_recovered_kg,
+        quantity_recycled_kg: r.quantity_recycled_kg,
+        quantity_composted_kg: r.quantity_composted_kg,
+        estimated_value: r.estimated_value,
+        co2_impact_estimate: r.co2_impact_estimate,
+        recorded_at: r.recorded_at,
+      };
+    });
+    res.json(results);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve impact records', detail: err.message });
+  }
 });
 
-// 6. Sustainability score routes
+// ------------------------------------------
+// 6. Sustainability Scoring
+// ------------------------------------------
 apiRouter.get('/sustainability/market/:id', (req, res) => {
-  const m = markets.find(x => x.id === req.params.id);
-  if (!m) return res.status(404).json({ detail: 'Market not found.' });
-  const score = calculateMarketScore(m.id);
-  res.json({ ...score, market_name: m.name });
+  try {
+    const m = markets.find(x => x.id === req.params.id);
+    if (!m) return res.status(404).json({ error: 'Market not found.', detail: 'Market not found.' });
+    const score = calculateMarketScore(m.id);
+    res.json({ ...score, market_name: m.name });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to compute sustainability score', detail: err.message });
+  }
 });
 
 apiRouter.get('/sustainability/markets', (req, res) => {
-  const active = markets.filter(m => m.status === 'ACTIVE');
-  const results = active.map(m => {
-    const score = calculateMarketScore(m.id);
-    return { ...score, market_name: m.name };
-  });
-  results.sort((a, b) => b.total_score - a.total_score);
-  res.json(results);
+  try {
+    const active = markets.filter(m => m.status === 'ACTIVE');
+    const results = active.map(m => {
+      const score = calculateMarketScore(m.id);
+      return { ...score, market_name: m.name };
+    });
+    results.sort((a, b) => b.total_score - a.total_score);
+    res.json(results);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to list market scores', detail: err.message });
+  }
 });
 
-// 7. Dashboard analytics
+// ------------------------------------------
+// 7. Dashboard Analytics
+// ------------------------------------------
 apiRouter.get('/dashboard/stats', requireAuth, (req, res) => {
-  const user = (req as any).user as Profile;
-  let targetMarketId = req.query.market_id as string | undefined;
+  try {
+    const user = (req as any).user as Profile;
+    let targetMarketId = req.query.market_id as string | undefined;
 
-  if (user.role === 'MARKET_MANAGER' && !targetMarketId) {
-    const myMarket = markets.find(m => m.manager_id === user.id);
-    if (myMarket) targetMarketId = myMarket.id;
-  }
-
-  let filteredWaste = wasteRecords;
-  let filteredPickups = pickupRequests;
-  let filteredImpact = impactRecords;
-
-  if (targetMarketId) {
-    filteredWaste = filteredWaste.filter(w => w.market_id === targetMarketId);
-    filteredPickups = filteredPickups.filter(p => p.market_id === targetMarketId);
-    filteredImpact = filteredImpact.filter(i => i.market_id === targetMarketId);
-  }
-
-  if (user.role === 'COLLECTOR') {
-    filteredPickups = filteredPickups.filter(p => p.collector_id === user.id);
-    const collectorWasteIds = filteredPickups.filter(p => p.status === 'COLLECTED').map(p => p.waste_record_id);
-    filteredImpact = filteredImpact.filter(i => collectorWasteIds.includes(i.waste_record_id));
-  }
-
-  const totalRegisteredKg = Math.round(filteredWaste.reduce((s, w) => s + w.quantity_kg, 0) * 10) / 10;
-  const totalRecoveredKg = Math.round(filteredImpact.reduce((s, i) => s + i.quantity_recovered_kg, 0) * 10) / 10;
-  const totalRecycledKg = Math.round(filteredImpact.reduce((s, i) => s + i.quantity_recycled_kg, 0) * 10) / 10;
-  const totalCompostedKg = Math.round(filteredImpact.reduce((s, i) => s + i.quantity_composted_kg, 0) * 10) / 10;
-  const estimatedResourceValueBdt = Math.round(filteredWaste.reduce((s, w) => s + w.estimated_value, 0) * 100) / 100;
-
-  const totalP = filteredPickups.length;
-  const collP = filteredPickups.filter(p => p.status === 'COLLECTED').length;
-  const pickupCompletionRate = totalP > 0 ? Math.round((collP / totalP) * 1000) / 10 : 0;
-
-  const recentWasteCount = filteredWaste.length;
-  const pendingPickupsCount = filteredPickups.filter(p => ['AVAILABLE', 'ACCEPTED'].includes(p.status)).length;
-
-  let scoreVal: number | null = null;
-  let scoreLabel: string | null = null;
-  if (targetMarketId) {
-    const s = calculateMarketScore(targetMarketId);
-    scoreVal = s.total_score;
-    scoreLabel = s.score_label;
-  } else {
-    const allScores = markets.filter(m => m.status === 'ACTIVE').map(m => calculateMarketScore(m.id).total_score);
-    if (allScores.length > 0) {
-      scoreVal = Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10;
-      if (scoreVal >= 80) scoreLabel = 'Excellent';
-      else if (scoreVal >= 60) scoreLabel = 'Good';
-      else if (scoreVal >= 40) scoreLabel = 'Developing';
-      else scoreLabel = 'Needs Improvement';
+    if (user.role === 'MARKET_MANAGER' && !targetMarketId) {
+      const myMarket = markets.find(m => m.manager_id === user.id);
+      if (myMarket) targetMarketId = myMarket.id;
     }
-  }
 
-  // Chart 1: By Category
-  const catTotals: Record<string, number> = {};
-  filteredWaste.forEach(w => {
-    const cat = wasteCategories.find(c => c.id === w.category_id);
-    const name = cat ? cat.name : 'Unclassified';
-    catTotals[name] = (catTotals[name] || 0) + w.quantity_kg;
-  });
-  const catLabels = Object.keys(catTotals).length > 0 ? Object.keys(catTotals) : ['Vegetable Waste', 'Fruit Waste', 'Plastic', 'Paper/Cardboard', 'Fish Waste'];
-  const catValues = catLabels.map(l => Math.round((catTotals[l] || 0) * 10) / 10);
-  const chartWasteByCategory = {
-    labels: catLabels,
-    datasets: [{
-      label: 'Registered (KG)',
-      data: catValues,
-      backgroundColor: ['#16a34a', '#f59e0b', '#0284c7', '#8b5cf6', '#ef4444', '#64748b'],
-    }],
-  };
+    let filteredWaste = wasteRecords;
+    let filteredPickups = pickupRequests;
+    let filteredImpact = impactRecords;
 
-  // Chart 2: Monthly waste (last 6 months)
-  const monthLabels: string[] = [];
-  const monthlyData: Record<string, number> = {};
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const now = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-    monthLabels.push(key);
-    monthlyData[key] = 0;
-  }
-  filteredWaste.forEach(w => {
-    const d = new Date(w.record_date);
-    const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-    if (monthlyData[key] !== undefined) {
-      monthlyData[key] += w.quantity_kg;
+    if (targetMarketId) {
+      filteredWaste = filteredWaste.filter(w => w.market_id === targetMarketId);
+      filteredPickups = filteredPickups.filter(p => p.market_id === targetMarketId);
+      filteredImpact = filteredImpact.filter(i => i.market_id === targetMarketId);
     }
-  });
-  const chartMonthlyWaste = {
-    labels: monthLabels,
-    datasets: [{
-      label: 'Waste Registered (KG)',
-      data: monthLabels.map(m => Math.round((monthlyData[m] || 0) * 10) / 10),
-      backgroundColor: '#10b981',
-      borderColor: '#059669',
-      borderWidth: 2,
-    }],
-  };
 
-  // Chart 3: Recovery Trend
-  const unrec = Math.max(0, Math.round((totalRegisteredKg - totalRecoveredKg) * 10) / 10);
-  const chartRecoveryTrend = {
-    labels: ['Recovered / Diverted', 'Pending / Residual'],
-    datasets: [{
-      label: 'KG',
-      data: [totalRecoveredKg, unrec],
-      backgroundColor: ['#16a34a', '#e2e8f0'],
-      borderColor: ['#15803d', '#cbd5e1'],
-      borderWidth: 1,
-    }],
-  };
+    if (user.role === 'COLLECTOR') {
+      filteredPickups = filteredPickups.filter(p => p.collector_id === user.id);
+      const collectorWasteIds = filteredPickups.filter(p => p.status === 'COLLECTED').map(p => p.waste_record_id);
+      filteredImpact = filteredImpact.filter(i => collectorWasteIds.includes(i.waste_record_id));
+    }
 
-  // Chart 4: Pathway distribution
-  const pathwayTotals: Record<string, number> = {};
-  filteredWaste.forEach(w => {
-    const p = w.recommended_pathway || 'Responsible Disposal';
-    pathwayTotals[p] = (pathwayTotals[p] || 0) + w.quantity_kg;
-  });
-  const pathwayLabels = Object.keys(pathwayTotals).length > 0 ? Object.keys(pathwayTotals) : ['Composting', 'Recycling', 'Organic Fertilizer', 'Disposal'];
-  const pathwayValues = pathwayLabels.map(p => Math.round((pathwayTotals[p] || 0) * 10) / 10);
-  const chartResourcePathway = {
-    labels: pathwayLabels,
-    datasets: [{
-      label: 'Pathway Volume (KG)',
-      data: pathwayValues,
-      backgroundColor: ['#22c55e', '#3b82f6', '#eab308', '#94a3b8'],
-    }],
-  };
+    const totalRegisteredKg = Math.round(filteredWaste.reduce((s, w) => s + w.quantity_kg, 0) * 10) / 10;
+    const totalRecoveredKg = Math.round(filteredImpact.reduce((s, i) => s + i.quantity_recovered_kg, 0) * 10) / 10;
+    const totalRecycledKg = Math.round(filteredImpact.reduce((s, i) => s + i.quantity_recycled_kg, 0) * 10) / 10;
+    const totalCompostedKg = Math.round(filteredImpact.reduce((s, i) => s + i.quantity_composted_kg, 0) * 10) / 10;
+    const estimatedResourceValueBdt = Math.round(filteredWaste.reduce((s, w) => s + w.estimated_value, 0) * 100) / 100;
 
-  res.json({
-    total_waste_registered_kg: totalRegisteredKg,
-    total_waste_recovered_kg: totalRecoveredKg,
-    total_waste_recycled_kg: totalRecycledKg,
-    total_waste_composted_kg: totalCompostedKg,
-    estimated_resource_value_bdt: estimatedResourceValueBdt,
-    pickup_completion_rate: pickupCompletionRate,
-    sustainability_score: scoreVal,
-    sustainability_label: scoreLabel,
-    recent_waste_count: recentWasteCount,
-    pending_pickups_count: pendingPickupsCount,
-    chart_waste_by_category: chartWasteByCategory,
-    chart_monthly_waste: chartMonthlyWaste,
-    chart_recovery_trend: chartRecoveryTrend,
-    chart_resource_pathway: chartResourcePathway,
-  });
+    const totalP = filteredPickups.length;
+    const collP = filteredPickups.filter(p => p.status === 'COLLECTED').length;
+    const pickupCompletionRate = totalP > 0 ? Math.round((collP / totalP) * 1000) / 10 : 0;
+
+    const recentWasteCount = filteredWaste.length;
+    const pendingPickupsCount = filteredPickups.filter(p => ['AVAILABLE', 'ACCEPTED'].includes(p.status)).length;
+
+    let scoreVal: number | null = null;
+    let scoreLabel: string | null = null;
+    if (targetMarketId) {
+      const s = calculateMarketScore(targetMarketId);
+      scoreVal = s.total_score;
+      scoreLabel = s.score_label;
+    } else {
+      const allScores = markets.filter(m => m.status === 'ACTIVE').map(m => calculateMarketScore(m.id).total_score);
+      if (allScores.length > 0) {
+        scoreVal = Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10;
+        if (scoreVal >= 80) scoreLabel = 'Excellent';
+        else if (scoreVal >= 60) scoreLabel = 'Good';
+        else if (scoreVal >= 40) scoreLabel = 'Developing';
+        else scoreLabel = 'Needs Improvement';
+      }
+    }
+
+    // Chart 1: Category
+    const catTotals: Record<string, number> = {};
+    filteredWaste.forEach(w => {
+      const cat = wasteCategories.find(c => c.id === w.category_id);
+      const name = cat ? cat.name : 'Unclassified';
+      catTotals[name] = (catTotals[name] || 0) + w.quantity_kg;
+    });
+    const catLabels = Object.keys(catTotals).length > 0 ? Object.keys(catTotals) : ['Vegetable Waste', 'Fruit Waste', 'Plastic', 'Paper/Cardboard', 'Fish Waste'];
+    const catValues = catLabels.map(l => Math.round((catTotals[l] || 0) * 10) / 10);
+    const chartWasteByCategory = {
+      labels: catLabels,
+      datasets: [{
+        label: 'Registered (KG)',
+        data: catValues,
+        backgroundColor: ['#16a34a', '#f59e0b', '#0284c7', '#8b5cf6', '#ef4444', '#64748b'],
+      }],
+    };
+
+    // Chart 2: Monthly Waste
+    const monthLabels: string[] = [];
+    const monthlyData: Record<string, number> = {};
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+      monthLabels.push(key);
+      monthlyData[key] = 0;
+    }
+    filteredWaste.forEach(w => {
+      const d = new Date(w.record_date);
+      const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+      if (monthlyData[key] !== undefined) {
+        monthlyData[key] += w.quantity_kg;
+      }
+    });
+    const chartMonthlyWaste = {
+      labels: monthLabels,
+      datasets: [{
+        label: 'Waste Registered (KG)',
+        data: monthLabels.map(m => Math.round((monthlyData[m] || 0) * 10) / 10),
+        backgroundColor: '#10b981',
+        borderColor: '#059669',
+        borderWidth: 2,
+      }],
+    };
+
+    // Chart 3: Recovery Trend
+    const unrec = Math.max(0, Math.round((totalRegisteredKg - totalRecoveredKg) * 10) / 10);
+    const chartRecoveryTrend = {
+      labels: ['Recovered / Diverted', 'Pending / Residual'],
+      datasets: [{
+        label: 'KG',
+        data: [totalRecoveredKg, unrec],
+        backgroundColor: ['#16a34a', '#e2e8f0'],
+        borderColor: ['#15803d', '#cbd5e1'],
+        borderWidth: 1,
+      }],
+    };
+
+    // Chart 4: Pathway distribution
+    const pathwayTotals: Record<string, number> = {};
+    filteredWaste.forEach(w => {
+      const p = w.recommended_pathway || 'Responsible Disposal';
+      pathwayTotals[p] = (pathwayTotals[p] || 0) + w.quantity_kg;
+    });
+    const pathwayLabels = Object.keys(pathwayTotals).length > 0 ? Object.keys(pathwayTotals) : ['Composting', 'Recycling', 'Organic Fertilizer', 'Disposal'];
+    const pathwayValues = pathwayLabels.map(p => Math.round((pathwayTotals[p] || 0) * 10) / 10);
+    const chartResourcePathway = {
+      labels: pathwayLabels,
+      datasets: [{
+        label: 'Pathway Volume (KG)',
+        data: pathwayValues,
+        backgroundColor: ['#22c55e', '#3b82f6', '#eab308', '#94a3b8'],
+      }],
+    };
+
+    res.json({
+      total_waste_registered_kg: totalRegisteredKg,
+      total_waste_recovered_kg: totalRecoveredKg,
+      total_waste_recycled_kg: totalRecycledKg,
+      total_waste_composted_kg: totalCompostedKg,
+      estimated_resource_value_bdt: estimatedResourceValueBdt,
+      pickup_completion_rate: pickupCompletionRate,
+      sustainability_score: scoreVal,
+      sustainability_label: scoreLabel,
+      recent_waste_count: recentWasteCount,
+      pending_pickups_count: pendingPickupsCount,
+      chart_waste_by_category: chartWasteByCategory,
+      chart_monthly_waste: chartMonthlyWaste,
+      chart_recovery_trend: chartRecoveryTrend,
+      chart_resource_pathway: chartResourcePathway,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to generate dashboard analytics', detail: err.message });
+  }
 });
 
-// Mount /api router
+// Mount API router
 app.use('/api', apiRouter);
+
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[Unhandled Global Error]', err);
+  res.status(500).json({
+    error: err.message || 'Internal Server Error',
+    detail: err.message || 'Internal Server Error',
+  });
+});
 
 // ==========================================
 // Vite / Static Frontend Mounting
@@ -1483,6 +2030,9 @@ async function start() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`BazarCycle BD app running on http://0.0.0.0:${PORT}`);
+    if (pool) {
+      initDbSync().catch((e: any) => console.warn('Supabase initial sync notice:', e.message));
+    }
   });
 }
 
