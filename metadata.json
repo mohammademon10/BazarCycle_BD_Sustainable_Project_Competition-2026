@@ -1,0 +1,8 @@
+{
+  "name": "BazarCycle BD",
+  "description": "Circular waste-to-resource tracking and sustainability platform for Bangladesh local markets.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
