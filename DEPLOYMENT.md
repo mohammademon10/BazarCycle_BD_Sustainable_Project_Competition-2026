@@ -1,64 +1,71 @@
-# 🚀 BazarCycle BD — Deployment Guide
+# 🚀 BazarCycle BD — 100% Free Production Deployment Guide
 
-This guide details how to deploy the full BazarCycle BD stack to production using free or low-cost hosting:
-- **Frontend:** Vercel / Netlify
-- **Backend:** Render / Railway / Fly.io / Koyeb (FastAPI Python)
-- **Database:** Supabase PostgreSQL (Managed Cloud Postgres)
+This guide details how to deploy the entire **BazarCycle BD** platform completely **FREE**.
 
 ---
 
-## 1. Supabase PostgreSQL Setup
-1. Create a free account at [https://supabase.com](https://supabase.com) and click **New Project**.
-2. Set project name (e.g., `bazarcycle-bd-prod`), choose a region close to Bangladesh (e.g., Singapore `ap-southeast-1`), and set a secure database password.
-3. Open the **SQL Editor** tab in your Supabase dashboard.
-4. Copy the entire contents of `database/schema.sql` from this repository and run it in the SQL Editor to instantiate all tables, indexes, and foreign keys.
-5. In Supabase Project Settings -> **Database**, copy your **Connection String (URI)**.
-   - Format: `postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres`
+## 🌟 Recommended Method: 1-Click Unified Fullstack on Render.com (100% Free)
+
+Since BazarCycle BD is structured as an integrated Node.js / Express + React (Vite) application, you can deploy both the frontend and backend together in a **single free web service**.
+
+### Steps:
+1. **Push your code to GitHub**:
+   Ensure all changes are pushed to your repository (e.g. `main` branch).
+
+2. **Sign up / Log in to [Render.com](https://render.com)** (Free).
+
+3. **Deploy with Blueprint OR Web Service**:
+   - **Method A (Easiest - Blueprint)**:
+     - In Render dashboard, click **New +** -> **Blueprint**.
+     - Select your GitHub repository.
+     - Render will automatically read `render.yaml` and configure everything.
+     - Click **Apply**.
+   
+   - **Method B (Manual Web Service)**:
+     - Click **New +** -> **Web Service**.
+     - Connect your repository.
+     - Configure the service:
+       - **Name:** `bazarcycle-bd`
+       - **Region:** Singapore / Frankfurt / Oregon (any free region)
+       - **Runtime:** `Node`
+       - **Build Command:** `npm install && npm run build`
+       - **Start Command:** `npm start`
+       - **Instance Type:** `Free`
+     - In **Environment Variables**, add:
+       - `NODE_ENV` = `production`
+       - `JWT_SECRET` = (Click generate or type any secret 32-character string)
+     - Click **Deploy Web Service**.
+
+4. **Done!**
+   - Render will build the Vite SPA into `dist/` and start Express (`server.ts`).
+   - Your live website will be available at `https://bazarcycle-bd.onrender.com`.
+   - Both `/` (React UI) and `/api/*` (REST endpoints) work seamlessly on the same URL with zero CORS issues!
 
 ---
 
-## 2. Backend Deployment (FastAPI on Render / Railway / Koyeb)
+## ⚡ Method 2: Split Deployment (Netlify/Vercel Frontend + Render/Railway Backend)
 
-### Environment Variables
-Configure the following in your host dashboard:
-```env
-DATABASE_URL=postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
-JWT_SECRET=generate_a_random_32_character_production_secret_here
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
-CORS_ORIGINS=https://bazarcycle-bd.vercel.app,http://localhost:5173
-ENVIRONMENT=production
-```
+If you prefer deploying the frontend to **Netlify** or **Vercel**:
 
-### Build & Start Commands
-- **Root Directory:** `backend`
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- **Optional Seed:** Run `python seed.py` one time via shell or deploy hook to populate demo categories and markets.
+### 1. Backend on Render.com:
+- Deploy as a Node Web Service using `npm start`.
+- Note down your backend URL: `https://your-backend.onrender.com`.
 
----
-
-## 3. Frontend Deployment (React + Vite on Vercel)
-1. Push this repository to GitHub.
-2. In [Vercel](https://vercel.com), click **Add New Project** and select your GitHub repository.
-3. Configure project settings:
-   - **Framework Preset:** `Vite`
-   - **Root Directory:** `frontend`
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
-4. In **Environment Variables**, add:
-   ```env
-   VITE_API_BASE_URL=https://your-backend-service.onrender.com/api
-   ```
-5. Click **Deploy**.
+### 2. Frontend on Netlify:
+- Go to [Netlify](https://app.netlify.com).
+- Click **Add new site** -> **Import an existing project** -> **GitHub**.
+- Netlify will detect `netlify.toml`:
+  - **Build command:** `npm run build`
+  - **Publish directory:** `dist`
+- In **Site configuration** -> **Environment variables**, add:
+  - `VITE_API_BASE_URL` = `https://your-backend.onrender.com/api`
+- Click **Deploy site**.
+- Netlify SPA routing is already handled by `public/_redirects` and `netlify.toml`!
 
 ---
 
-## 4. Production Security Checklist
-- [x] Passwords hashed with bcrypt (rounds=12)
-- [x] JWT Bearer token authentication on all management and collection endpoints
-- [x] Strict CORS restriction to your deployed frontend domain
-- [x] Database password and JWT secrets stored in environment variables, never committed to git
-- [x] Row-level locking on pickup claims to prevent race conditions
-- [x] Quantity input validation (`quantity > 0 KG`) enforced on backend
-- [x] CO₂ and financial numbers clearly marked with estimation disclaimers
+## 🔑 Pre-Configured Demo Credentials
+Once deployed, log in immediately with:
+- **Platform Admin:** `admin@bazarcycle.bd` / `BazarCycle2026!`
+- **Market Manager (Karwan Bazar):** `manager@bazarcycle.bd` / `BazarCycle2026!`
+- **Waste Collector (Green Cycle):** `collector@bazarcycle.bd` / `BazarCycle2026!`
