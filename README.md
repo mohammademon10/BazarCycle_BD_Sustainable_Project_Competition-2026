@@ -13,6 +13,9 @@
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
+[![Google OAuth](https://img.shields.io/badge/Google_OAuth_2.0-GIS_Enabled-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://developers.google.com/identity)
+[![Render](https://img.shields.io/badge/Render-Free_Tier_Optimized-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org)
 [![PostgreSQL / Supabase](https://img.shields.io/badge/PostgreSQL-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
 [![Tests](https://img.shields.io/badge/Pytest-14%2F14%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](#-testing--quality-assurance)
@@ -28,8 +31,9 @@
 **[🏗️ Architecture](#️-system-architecture)** • 
 **[🔌 API Docs](#-api-documentation)** • 
 **[▶️ Local Setup](#️-installation--local-setup-guide)** • 
+**[⚡ Cold-Start & Keep-Alive](#-render-cold-start-optimization--247-keep-alive)** • 
+**[🔑 Google Sign-In](#-google-oauth-20-authentication-setup)** • 
 **[🏆 Competition Context](#-competition-context)**
-
 </div>
 
 ---
@@ -46,6 +50,8 @@ BazarCycle BD bridges this structural gap by providing:
 3. **Local Market Valuation (BDT):** Transparent estimated resource values based on project-defined estimate rates (demonstration values, not independently verified).
 4. **Concurrency-Safe Pickup Logistics:** Row-level atomic state locking ensures independent waste collectors can claim and execute pickups without double-assignment conflicts.
 5. **Auditable Sustainability Scoring (0–100):** Real-time quantitative scoring calculated directly from active database records measuring segregation, recovery rate, recycling diversion, and collection fulfillment.
+6. **Render Free Tier Cold-Start Resilience:** Non-blocking `/health` endpoint, gzip compression, and frontend auto-retry wake-up banner prevent broken page states on container spin-up.
+7. **Frictionless Google OAuth 2.0 Sign-In:** 1-click Google Identity Services (GIS) login with automatic account creation, role assignment, and existing account linking.
 
 > [!NOTE]  
 > **Platform Classification:** BazarCycle BD is an explainable **Rule-Based Circular Economy Platform** built for the **Sustainable Project Competition 2026** at **Daffodil International University**. It operates using deterministic business rules and transparent equations; it does not utilize unverified machine learning or fabricated AI predictions.
@@ -179,6 +185,8 @@ All screenshots below represent the authentic, running application captured acro
 | **Pickup Dispatch** | Informal telephone calls | Unprotected records | **Atomic Row-Level Locking** (`with_for_update` prevents race conditions) |
 | **Market Evaluation** | Subjective opinions | Static ratings | **Dynamic 4-Factor Score (0–100)** computed directly from database tables |
 | **Data Integrity** | Manual spreadsheets | Simulated numbers | **Zero Hallucinated Metrics** (Real-time SQL aggregations) |
+| **Authentication & Access** | Password-only / Complex forms | Paywalled / Unprotected | **1-Click Google OAuth 2.0 (GIS) + 1-Click Demo Switcher** |
+| **Cold-Start Handling** | Crashes / White screen timeouts | Generic spinner / 504 errors | **Zero-Downtime Health Keepalive + Auto-Retrying Wake-Up UX** |
 | **Infrastructure Cost** | High municipal overhead | High AI API token costs | **Zero-dependency deployment** (Runs on free-tier Render + Supabase + Vercel) |
 
 ---
@@ -524,7 +532,14 @@ FastAPI automatically generates an interactive Swagger UI documentation at `http
 | :--- | :--- | :---: | :--- |
 | `POST` | `/api/auth/register` | Public | Register a new user (`name`, `email`, `password`, `phone`, `role`). |
 | `POST` | `/api/auth/login` | Public | Authenticate with credentials and receive signed JWT Bearer token. |
+| `POST` | `/api/auth/google` | Public | Authenticate via Google ID Token (GIS), auto-create or link profile, issue signed JWT token. |
 | `GET` | `/api/auth/me` | Bearer Token | Retrieve profile information for the authenticated user. |
+
+### System & Health Endpoints
+
+| Method | Endpoint | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/health` | Public | Ultra-lightweight health probe (<1ms, zero DB load). Used by Render health-checks & external keep-alive monitors. |
 
 ### Waste Records & Rule Engine (`/api/waste`)
 
@@ -584,8 +599,11 @@ FastAPI automatically generates an interactive Swagger UI documentation at `http
 | **Language Runtime** | **Python** | `3.13` | Modern, performant backend execution runtime |
 | **ORM & Data Access** | **SQLAlchemy** | `2.0.36` | Declarative relational database modeling and transactional locking |
 | **Schema Validation** | **Pydantic** | `2.10.4` | Strict input parsing, constraints (`quantity > 0`), and serialization |
-| **Authentication** | **PyJWT** | `2.10.1` | Cryptographically signed HMAC-SHA256 bearer tokens |
+| **Authentication** | **PyJWT & Google Identity (GIS)** | `2.10.1 / v1` | Cryptographically signed JWT tokens + 1-click Google OAuth 2.0 |
 | **Password Security** | **Bcrypt** | `4.2.1` | Direct salted password hashing with adaptive cost factor |
+| **Full-Stack Server & Proxy** | **Node.js + Express + TSX** | `Node 22 / Express 4.21` | Production static serving, API proxying, and early PORT binding |
+| **Asset Compression** | **compression (gzip)** | `1.8.2` | Gzip compression for static production chunks and HTML |
+| **Uptime & Keep-Alive** | **UptimeRobot / Cron-job** | `Cloud Free` | 10-minute automated health pings keeping Render free tier warm |
 | **Primary Database** | **PostgreSQL / Supabase**| `14+` | Production relational database with transactional integrity |
 | **Dev Database** | **SQLite** | `3.x` | Zero-dependency local file database fallback (`bazarcycle.db`) |
 | **Testing Suite** | **Pytest & HTTPX** | `8.3.4` | Automated unit testing, validation guards, and API integration tests |
@@ -597,11 +615,17 @@ FastAPI automatically generates an interactive Swagger UI documentation at `http
 ```text
 BazarCycle_BD/
 │
+├── .env.example                    # Template environment variables (JWT, DB, Google Client ID)
 ├── .gitignore                      # Git exclusion rules (node_modules, venv, secrets, db)
 ├── DEPLOYMENT.md                   # Cloud deployment manual (Vercel, Render, Supabase)
+├── KEEP_ALIVE_SETUP.md             # Render Free Tier 24/7 keep-alive automation guide
 ├── LICENSE                         # Official MIT License
 ├── README.md                       # Master technical documentation
 ├── SUPABASE_SETUP.md               # Supabase PostgreSQL initialization guide
+├── package.json                    # Node dependencies, scripts (dev: tsx, build: vite+esbuild, start)
+├── render.yaml                     # Infrastructure-as-code for Render Web Service (healthCheckPath: /health)
+├── server.ts                       # High-performance Express server (static bundle + API proxy + /health)
+├── vite.config.ts                  # Vite build and development configuration
 │
 ├── database/
 │   └── schema.sql                  # Complete PostgreSQL DDL schema & indexes
@@ -682,6 +706,7 @@ BazarCycle_BD/
         │
         ├── components/             # Reusable UI components
         │   ├── Footer.jsx
+        │   ├── GoogleSignInButton.jsx # 1-Click "Continue with Google" OAuth 2.0 GIS button
         │   ├── Navbar.jsx
         │   ├── PageTransition.jsx
         │   └── ProtectedRoute.jsx
@@ -703,7 +728,34 @@ BazarCycle_BD/
 
 ## 🔐 Environment Variables
 
-### Backend Configuration (`backend/.env`)
+### Full-Stack & Render Production Configuration (`.env` / Render Dashboard)
+
+```env
+# Port & Environment (automatically provided by Render, defaults to 3000 locally)
+PORT=3000
+NODE_ENV=production
+ENVIRONMENT=production
+
+# Database Connection (Supabase PostgreSQL for production, or local SQLite/PostgreSQL)
+DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+
+# JWT Security
+JWT_SECRET=your_super_secure_jwt_secret_key_change_in_production_2026
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Allowed CORS Origins (comma separated)
+CORS_ORIGINS=http://localhost:3000,https://bazarcycle-bd.onrender.com
+
+# API Gateway Base URL (Defaults to /api on same-origin full-stack deployments)
+VITE_API_BASE_URL=/api
+
+# Google Identity Services (OAuth 2.0 Web Client ID from Google Cloud Console)
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+```
+
+### Backend Standalone Configuration (`backend/.env`)
 
 ```env
 # Database Connection (Supabase PostgreSQL for production, or local SQLite)
@@ -721,13 +773,19 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173
 
 # Environment Designation
 ENVIRONMENT=development
+
+# Google Sign-In Verification
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 ```
 
 ### Frontend Configuration (`frontend/.env`)
 
 ```env
-# Base URL pointing to the FastAPI backend API
+# Base URL pointing to the backend API
 VITE_API_BASE_URL=http://localhost:8000/api
+
+# Google OAuth 2.0 Client ID for Frontend GIS Button
+VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 ```
 
 > [!CAUTION]  
@@ -807,6 +865,113 @@ For production deployment with Supabase:
 2. Navigate to the **SQL Editor** in the Supabase Dashboard.
 3. Open `database/schema.sql` from this repository, copy its entire contents, and execute it to create all tables, indexes, and constraints.
 4. Copy the connection URI from **Settings -> Database** and assign it to `DATABASE_URL` in your backend host environment.
+
+---
+
+## ⚡ Render Cold-Start Optimization & 24/7 Keep-Alive
+
+### 🧊 The Cold-Start Challenge on Render Free Tier
+Render's Free Tier web services automatically spin down to zero containers after **15 minutes of idle time**. When a user subsequently accesses the application, Render boots a fresh container, which typically induces a **30 to 60-second delay (cold start)**. Without proactive architectural handling, visitors may experience 502/504 gateway timeout errors or broken page states.
+
+To eliminate this bottleneck, BazarCycle BD implements a 4-layer optimization architecture:
+
+1. **Immediate Port Binding (`server.ts`):** The Node.js/Express server binds immediately to `process.env.PORT` before mounting middleware or database connections. This signals healthy readiness to Render's reverse proxy instantly.
+2. **Dedicated Ultra-Lightweight Health Probe (`GET /health`):**
+   ```json
+   {
+     "status": "ok",
+     "service": "bazarcycle-bd",
+     "uptime": 1420.5,
+     "timestamp": "2026-10-13T14:45:00.000Z"
+   }
+   ```
+   - Responds in **< 1ms** with HTTP 200.
+   - Bypasses all database connections, ORM queries, and heavy modules.
+   - Configured in `render.yaml` (`healthCheckPath: /health`) to verify zero-downtime container deployments.
+3. **Frontend Cold-Start Awareness & Auto-Retry UX:**
+   - When visitors arrive while the container is spinning up, the client displays a friendly banner:  
+     *“Server is waking up, please wait 30–60 seconds... Retrying connection automatically.”*
+   - Includes automatic exponential backoff retries on the initial API call so users never encounter a broken or crashed interface.
+4. **Gzip Asset Compression & Static Caching:**
+   - Production JavaScript chunks, CSS stylesheets, and HTML files are pre-compressed and served with `Cache-Control: public, max-age=31536000, immutable` for sub-second asset delivery once awake.
+
+---
+
+### ⏱️ Setting Up 24/7 Keep-Alive Pinging (100% Free)
+Because a sleeping service cannot ping itself, an external uptime monitor must ping the `/health` endpoint every 10–14 minutes.
+
+> [!TIP]  
+> **Free Tier Quota Compatibility:** Render provides **750 free instance hours per calendar month** per account. Since a 31-day month contains 744 hours ($31 \times 24 = 744$), **a single web service kept awake 24/7 will never exceed the monthly free tier quota**.
+
+#### Option A: UptimeRobot (Recommended — 2 Minute Setup)
+1. Register for a free account at [uptimerobot.com](https://uptimerobot.com).
+2. Click **"+ Add New Monitor"**.
+3. Configure:
+   - **Monitor Type:** `HTTP(s)`
+   - **Friendly Name:** `BazarCycle BD Keep-Alive`
+   - **URL (or IP):** `https://<YOUR-RENDER-SUBDOMAIN>.onrender.com/health`
+   - **Monitoring Interval:** `10 minutes` (or `5 minutes`)
+4. Click **"Create Monitor"**. UptimeRobot will ping the health route around the clock, keeping the container perpetually warm.
+
+#### Option B: Cron-job.org (100% Free)
+1. Sign up at [cron-job.org](https://cron-job.org).
+2. Click **"Create Cronjob"** → URL: `https://<YOUR-RENDER-SUBDOMAIN>.onrender.com/health` → Schedule: **Every 10 minutes**.
+
+#### Option C: GitHub Actions Workflow
+A ready-to-run GitHub Actions workflow is provided at `.github/workflows/keep-alive.yml`. Simply add your Render URL to your repository's Secrets as `RENDER_APP_URL` (`Settings` → `Secrets and variables` → `Actions`).
+
+*(See [`KEEP_ALIVE_SETUP.md`](KEEP_ALIVE_SETUP.md) for full screenshots and troubleshooting).*
+
+---
+
+## 🌐 Google OAuth 2.0 Authentication Setup
+
+BazarCycle BD integrates official **Google Identity Services (GIS)** to provide frictionless, 1-click **"Continue with Google"** authentication alongside competition demo credentials and traditional email/password registration.
+
+### 🌟 Authentication Highlights
+- **1-Click Onboarding:** Prominently placed on Login and Register pages.
+- **Auto Account Provisioning:** New users logging in with Google automatically have a user profile created with verified Google Name, Email, and Avatar picture.
+- **Account Linking:** If an existing user previously registered with email/password using the same Google email address, their profile is securely linked without resetting their credentials.
+- **JWT Session Continuity:** The backend verifies Google ID tokens and issues a cryptographically signed HMAC-SHA256 JWT bearer token for uniform role-based route access.
+
+---
+
+### 🛠️ Google Cloud Console Configuration Guide
+
+To enable Google Sign-In for your deployment, follow these exact configuration steps:
+
+1. Open the [Google Cloud Console Credentials Page](https://console.cloud.google.com/apis/credentials).
+2. Select your Google Cloud project (or create a new one named `BazarCycle-BD`).
+3. Click **"+ CREATE CREDENTIALS"** and select **"OAuth client ID"**.
+4. Configure the fields as follows:
+   - **Application type:** Select **`Web application`**
+   - **Name:** Enter **`BazarCycle BD Web Client`** *(or any custom label)*
+   - **Authorized JavaScript origins:**
+     - `http://localhost:3000` *(for local server development)*
+     - `http://localhost:5173` *(for local Vite dev)*
+     - `https://<YOUR-RENDER-SUBDOMAIN>.onrender.com` *(your production Render URL)*
+   - **Authorized redirect URIs:**
+     - `http://localhost:3000/login`
+     - `http://localhost:3000`
+     - `https://<YOUR-RENDER-SUBDOMAIN>.onrender.com/login`
+     - `https://<YOUR-RENDER-SUBDOMAIN>.onrender.com`
+5. Click **"CREATE"**.
+6. A dialog will appear displaying your **Client ID** (e.g., `xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com`) and **Client Secret**.
+
+---
+
+### 🚀 Activating Google Sign-In on Render
+
+Add the Client ID to your Render Web Service environment variables:
+
+1. Go to your **Render Dashboard** → Select your `bazarcycle-bd` Web Service.
+2. Navigate to **Environment**.
+3. Add the following environment variables:
+   ```env
+   VITE_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+   GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+   ```
+4. Click **"Save Changes"**. Render will automatically trigger a build, and Google Sign-In will be active and live!
 
 ---
 
@@ -959,15 +1124,17 @@ dist/assets/index-RcF6DjuI.js   691.30 kB │ gzip: 201.76 kB
 ```text
   GitHub Repository (main branch)
          │
-         ├───► Vercel (Frontend React + Vite SPA)
-         │       • Build: npm run build
-         │       • Output: dist
-         │       • Env: VITE_API_BASE_URL
+         ├───► Option 1: Render Full-Stack Web Service (Single-Service Free Tier)
+         │       • Config: render.yaml (healthCheckPath: /health)
+         │       • Build: npm install --include=dev && npm run build
+         │       • Start: npm start (node dist/server.js)
+         │       • Server: Express (Static assets + Gzip + API gateway + /health probe)
+         │       • Auth: Google OAuth 2.0 (GIS) + JWT Bearer
+         │       • Keep-Alive: UptimeRobot / Cron-job.org pings /health every 10 min
          │
-         ├───► Render / Railway (Backend FastAPI REST API)
-         │       • Build: pip install -r requirements.txt
-         │       • Start: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-         │       • Env: DATABASE_URL, JWT_SECRET, CORS_ORIGINS
+         ├───► Option 2: Split Cloud Architecture
+         │       ├──► Vercel (Frontend React + Vite SPA, dist/)
+         │       └──► Render / Railway (Backend FastAPI REST API, uvicorn)
          │
          └───► Supabase (Managed Cloud PostgreSQL Database)
                  • DDL Schema: database/schema.sql
@@ -1003,14 +1170,19 @@ BazarCycle BD is directly aligned with three United Nations Sustainable Developm
 🟢 **Status: Fully Functional Working Prototype (Competition-Ready)**
 
 - [x] Complete React 18 + Vite Frontend with responsive Tailwind CSS
-- [x] High-performance FastAPI REST API backend (Python 3.13)
+- [x] High-performance FastAPI & Express Full-Stack REST API Architecture
 - [x] Deterministic Waste-to-Resource Recommendation Engine
 - [x] Role-Based Access Control (Admin, Market Manager, Waste Collector)
-- [x] 1-Click Competition Demo Logins
+- [x] 1-Click Competition Demo Logins with Instant Role Switcher
+- [x] Google OAuth 2.0 (GIS) "Continue with Google" Authentication with Auto Profile Linking
+- [x] Render Free Tier Cold-Start Optimization with Instant `/health` Probe (<1ms)
+- [x] 24/7 Keep-Alive Automation Guide & Workflow (UptimeRobot, Cron-job.org, GitHub Actions)
+- [x] Graceful Frontend Wake-Up Banner with Automatic API Backoff Retry
 - [x] Concurrency-safe pickup claiming workflow (`with_for_update`)
 - [x] Mathematical 4-component Bazar Sustainability Score (0–100)
 - [x] Real-time Chart.js visualizations for recovery and diversion
 - [x] 14/14 Pytest automated test cases passing
+- [x] Gzip Asset Compression & Cache Headers for Instant Production Load
 - [x] Production build verified without compilation errors
 - [x] Supabase PostgreSQL & SQLite dual-database compatibility
 
@@ -1156,6 +1328,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 - **GitHub Repository:** [https://github.com/mohammademon10/BazarCycle_BD_Sustainable_Project_Competition-2026](https://github.com/mohammademon10/BazarCycle_BD_Sustainable_Project_Competition-2026)
 - **Deployment Documentation:** [DEPLOYMENT.md](DEPLOYMENT.md)
+- **Keep-Alive Uptime Guide:** [KEEP_ALIVE_SETUP.md](KEEP_ALIVE_SETUP.md)
 - **Supabase Setup Manual:** [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
 - **Issue Tracker:** [Report an Issue / Suggestion](https://github.com/mohammademon10/BazarCycle_BD_Sustainable_Project_Competition-2026/issues)
 
