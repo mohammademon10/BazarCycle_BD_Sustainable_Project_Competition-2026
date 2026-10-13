@@ -87,57 +87,85 @@ BazarCycle BD bridges this structural gap by providing:
 
 ## 📸 Visual Tour & Screenshots
 
-All screenshots below represent the authentic, running application captured across all user roles and viewport dimensions.
+All screenshots below represent the authentic, running application captured across all user roles, operational workflows, and viewport dimensions.
 
-### 🏠 Landing & Public Experience
+### 📋 Screenshot Index & Navigation
+
+| # | Screen / Module | Target User Role | Primary Capability Highlighted |
+| :---: | :--- | :--- | :--- |
+| **01** | [Landing Page](#-01-landing--public-experience) | Public / Visitor | Live market stats, SDGs, interactive video showcase & circular pathways |
+| **02** | [Authentication](#-02-authentication--1-click-demo-role-switcher) | All Roles | 1-Click Competition Demo Logins + Google OAuth 2.0 (GIS) |
+| **03** | [Registration](#-03-multi-role-account-registration) | New Users | Role-specific profile registration with form validation |
+| **04** | [Market Workspace](#-04-market-manager-workspace--batch-monitor) | Market Manager | Batch queue, live alerts, estimated valuation & sustainability score |
+| **05** | [Waste Logging](#-05-waste-registration--real-time-valuation) | Market Manager | Real-time rule-based classification & instant CO₂e calculation |
+| **06** | [Resource Pathways](#-06-rule-based-resource-pathway-directory) | All Roles | Deterministic routing catalog (Composting, Fertilizer, Recycling) |
+| **07** | [Pickup Logistics](#-07-collector-logistics--atomic-claim-dispatch) | Waste Collector | Concurrency-guarded pickup claim with atomic row-level locking |
+| **08** | [Collector Portal](#-08-collector-operational-performance-dashboard) | Waste Collector | Active routes, recovered tonnage & cumulative BDT earnings |
+| **09** | [Platform Admin](#-09-platform-administration--shed-governance) | Administrator | Wholesale bazars oversight, user management & audit logs |
+| **10** | [Impact Dashboard](#-10-public-impact-analytics--diversion-metrics) | Public / Municipal | Aggregate diverted tonnage, avoided landfill emissions & BDT value |
+| **11** | [Sustainability Score](#-11-bazar-sustainability-score-0100) | Bazar Committee | Quantitative 4-factor mathematical audit score (0–100) |
+| **12** | [Mobile Interface](#-12-responsive-mobile-layout) | On-site Workers | Responsive touch-friendly layout for mobile smartphones on-site |
+| **13** | [Upcycled Products](#-13-upcycled-commercial-products-closed-loop-conversion) | Recyclers / Buyers | High-value commercial compost & organic aqua-feed outputs |
+
+---
+
+### 🏠 01. Landing & Public Experience
 <p align="center">
   <img src="screenshots/01-home.png" alt="BazarCycle BD Homepage" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
-<p align="center"><i>Public landing page highlighting the circular mission, live Dhaka market statistics, workflow steps, and SDG alignment.</i></p>
+<p align="center"><i>Public landing page highlighting the circular mission, live Dhaka market statistics, workflow steps, video showcase, and SDG alignment.</i></p>
 
 ---
 
-### 🔐 Authentication & 1-Click Role Switcher
+### 🔐 02. Authentication & 1-Click Demo Role Switcher
 <p align="center">
   <img src="screenshots/02-login.png" alt="BazarCycle BD Login" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
-<p align="center"><i>Sign-in portal equipped with 1-click Competition Demo Logins for Market Manager, Waste Collector, and Platform Administrator.</i></p>
+<p align="center"><i>Sign-in portal equipped with 1-click Competition Demo Logins for Market Manager, Waste Collector, and Platform Administrator, plus Google OAuth 2.0.</i></p>
 
 ---
 
-### 🏪 Market Manager Workspace
+### 📝 03. Multi-Role Account Registration
+<p align="center">
+  <img src="screenshots/03-register.png" alt="BazarCycle BD Registration" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+</p>
+<p align="center"><i>Account creation portal allowing shed managers, waste collectors, and institutional administrators to register with full input validation.</i></p>
+
+---
+
+### 🏪 04. Market Manager Workspace & Batch Monitor
 <p align="center">
   <img src="screenshots/04-market-manager-dashboard.png" alt="Market Manager Dashboard" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
-<p align="center"><i>Market Manager dashboard displaying registered batches, active pickup alerts, estimated value (BDT), and market score metrics.</i></p>
+<p align="center"><i>Market Manager workspace displaying registered batches, active pickup alerts, estimated value (BDT), and live market score metrics.</i></p>
 
 ---
 
-### ♻️ Waste Registration & Dynamic Valuation
+### ♻️ 05. Waste Registration & Real-Time Valuation
 <p align="center">
   <img src="screenshots/05-waste-registration.png" alt="Waste Registration Form" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
-<p align="center"><i>Interactive waste logging form with real-time rule engine feedback showing recommended pathway, estimated BDT value, and avoided CO₂e.</i></p>
+<p align="center"><i>Interactive waste logging form with instant rule engine feedback showing recommended pathway, estimated BDT value, and avoided CO₂e emissions.</i></p>
 
 ---
 
-### 🧠 Rule-Based Resource Pathway Directory
+### 🧠 06. Rule-Based Resource Pathway Directory
 <p align="center">
   <img src="screenshots/06-resource-pathway.png" alt="Resource Pathway View" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
-<p align="center"><i>Comprehensive log of registered waste batches, their deterministic pathways (Composting, Recycling, Fertilizer), and pickup status.</i></p>
+<p align="center"><i>Comprehensive log of registered waste batches, their deterministic pathways (Composting, Recycling, Fertilizer), and real-time pickup status.</i></p>
 
 ---
 
-### 🚛 Collector Logistics & Concurrency Protected Dispatch
+### 🚛 07. Collector Logistics & Atomic Claim Dispatch
 <p align="center">
   <img src="screenshots/07-pickup-workflow.png" alt="Pickup Workflow" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
-<p align="center"><i>Collector opportunity browser: collectors view available market batches and accept them with atomic concurrency protection.</i></p>
+<p align="center"><i>Collector opportunity browser: collectors view available market batches and accept them with atomic row-level concurrency protection.</i></p>
 
 ---
 
-### 🚜 Collector Operational Dashboard
+### 🚜 08. Collector Operational Performance Dashboard
 <p align="center">
   <img src="screenshots/08-collector-dashboard.png" alt="Collector Dashboard" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
@@ -145,23 +173,7 @@ All screenshots below represent the authentic, running application captured acro
 
 ---
 
-### 🌱 Bazar Sustainability Score (0–100)
-<p align="center">
-  <img src="screenshots/11-sustainability-score.png" alt="Bazar Sustainability Score" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-</p>
-<p align="center"><i>Quantitative market audit scoring breakdown across Segregation (25%), Recovery (30%), Recycling (20%), and Collection Efficiency (25%).</i></p>
-
----
-
-### 📊 Public Impact Analytics
-<p align="center">
-  <img src="screenshots/10-impact-dashboard.png" alt="Impact Dashboard" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-</p>
-<p align="center"><i>Platform-wide public impact analytics computing diverted tonnage, avoided landfill emissions, and economic resource recovery.</i></p>
-
----
-
-### 🛡️ Platform Administration
+### 🛡️ 09. Platform Administration & Shed Governance
 <p align="center">
   <img src="screenshots/09-admin-dashboard.png" alt="Admin Dashboard" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
@@ -169,11 +181,39 @@ All screenshots below represent the authentic, running application captured acro
 
 ---
 
-### 📱 Responsive Mobile Layout
+### 📊 10. Public Impact Analytics & Diversion Metrics
+<p align="center">
+  <img src="screenshots/10-impact-dashboard.png" alt="Impact Dashboard" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+</p>
+<p align="center"><i>Platform-wide public impact analytics computing diverted tonnage, avoided landfill emissions, and economic resource recovery.</i></p>
+
+---
+
+### 🌱 11. Bazar Sustainability Score (0–100)
+<p align="center">
+  <img src="screenshots/11-sustainability-score.png" alt="Bazar Sustainability Score" width="95%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+</p>
+<p align="center"><i>Quantitative market audit scoring breakdown across Segregation (25%), Recovery (30%), Recycling (20%), and Collection Efficiency (25%).</i></p>
+
+---
+
+### 📱 12. Responsive Mobile Layout
 <p align="center">
   <img src="screenshots/12-mobile-view.png" alt="Mobile View" width="40%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </p>
 <p align="center"><i>Fully responsive mobile interface optimized for market shed supervisors and collectors using smartphones on-site.</i></p>
+
+---
+
+### 📦 13. Upcycled Commercial Products (Closed-Loop Conversion)
+<div align="center">
+
+| 🐟 BazarCycle Organic Fish Feed | 🌿 BazarCycle Organic Compost |
+| :---: | :---: |
+| <img src="screenshots/bazarcycle_organic_fish_feed.jpg" alt="BazarCycle Organic Fish Feed" width="100%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"/> | <img src="screenshots/bazarcycle_organic_compost.jpg" alt="BazarCycle Organic Compost" width="100%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"/> |
+| **Source Stream:** Fish entrails, trimmings & offal<br/>**Application:** Aqua-feed protein supplement<br/>**Market Est.:** 45 BDT / KG | **Source Stream:** Market fruit & vegetable bio-waste<br/>**Application:** Soil microbial rejuvenator<br/>**Market Est.:** 15 BDT / KG |
+
+</div>
 
 ---
 
