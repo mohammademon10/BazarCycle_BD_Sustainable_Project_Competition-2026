@@ -123,6 +123,7 @@ export default function LandingPage() {
   const [activeRoleTab, setActiveRoleTab] = useState('MARKET_MANAGER');
   const [activePathway, setActivePathway] = useState(2); // Card 3 (Fiber Pathway) default active
   const [activeHotspot, setActiveHotspot] = useState(null);
+  const [hoveredIssue, setHoveredIssue] = useState(0);
 
   const handleChapterClick = (index, seconds) => {
     setActiveHighlight(index);
