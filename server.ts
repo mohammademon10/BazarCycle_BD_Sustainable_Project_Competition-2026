@@ -885,10 +885,23 @@ const app = express();
 // Responds in <1ms without touching database or running auth logic.
 // Used by Render health-check, external uptime monitors, and frontend wake detector.
 // ==========================================
-app.get('/health', (_req, res) => {
+app.get('/health', async (_req, res) => {
+  let dbStatus = 'in_memory_active';
+  if (pool) {
+    try {
+      await Promise.race([
+        pool.query('SELECT 1'),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+      ]);
+      dbStatus = 'postgres_connected';
+    } catch {
+      dbStatus = 'postgres_reconnecting';
+    }
+  }
   res.status(200).json({
     status: 'healthy',
     service: 'BazarCycle BD API',
+    database: dbStatus,
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
   });
@@ -896,13 +909,37 @@ app.get('/health', (_req, res) => {
 
 // Enable Gzip/Brotli compression for all HTTP responses and static bundles
 app.use(compression());
-app.use(cors());
+
+// Production & Dev CORS Configuration
+const corsOriginsEnv = process.env.CORS_ORIGINS;
+if (corsOriginsEnv && corsOriginsEnv !== '*') {
+  const allowedOrigins = corsOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean);
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+          callback(null, true);
+        } else {
+          callback(new Error(`Origin ${origin} not allowed by CORS`));
+        }
+      },
+      credentials: true,
+    })
+  );
+} else {
+  app.use(cors());
+}
+
 app.use(express.json({ limit: '10mb' }));
 
 // Auth token helpers
+const JWT_ALGORITHM = (process.env.JWT_ALGORITHM as jwt.Algorithm) || 'HS256';
+const ACCESS_TOKEN_EXPIRE_MINUTES = Number(process.env.ACCESS_TOKEN_EXPIRE_MINUTES) || 10080;
+
 function createToken(profile: Profile): string {
   return jwt.sign({ sub: profile.id, role: profile.role, email: profile.email }, JWT_SECRET, {
-    expiresIn: '7d',
+    algorithm: JWT_ALGORITHM,
+    expiresIn: `${ACCESS_TOKEN_EXPIRE_MINUTES}m`,
   });
 }
 
@@ -914,7 +951,7 @@ function authMiddleware(req: express.Request, res: express.Response, next: expre
   }
   const token = authHeader.split(' ')[1];
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM] }) as any;
     const user = profiles.find(p => p.id === payload.sub);
     (req as any).user = user || null;
   } catch (err) {
@@ -1490,8 +1527,8 @@ apiRouter.post('/waste/categories', requireRole(['ADMIN']), async (req, res) => 
 
 apiRouter.post('/waste/recommend', (req, res) => {
   try {
-    const { category_id, category_name, quantity_kg } = req.body;
-    let catName = category_name;
+    const { category_id, category_name, category, quantity_kg } = req.body;
+    let catName = category_name || category;
     let unitRate: number | undefined;
 
     if (category_id) {
@@ -1543,7 +1580,7 @@ function formatWasteRecord(w: WasteRecord) {
   };
 }
 
-apiRouter.get('/waste', (req, res) => {
+apiRouter.get(['/waste', '/waste/records'], (req, res) => {
   try {
     const { market_id, category_id, status_filter, limit } = req.query;
     let list = wasteRecords;
@@ -1559,7 +1596,7 @@ apiRouter.get('/waste', (req, res) => {
   }
 });
 
-apiRouter.get('/waste/:id', (req, res) => {
+apiRouter.get(['/waste/:id', '/waste/records/:id'], (req, res) => {
   try {
     const w = wasteRecords.find(x => x.id === req.params.id);
     if (!w) return res.status(404).json({ error: 'Waste record not found.', detail: 'Waste record not found.' });
@@ -1569,7 +1606,7 @@ apiRouter.get('/waste/:id', (req, res) => {
   }
 });
 
-apiRouter.post('/waste', requireRole(['ADMIN', 'MARKET_MANAGER']), async (req, res) => {
+apiRouter.post(['/waste', '/waste/records'], requireRole(['ADMIN', 'MARKET_MANAGER']), async (req, res) => {
   try {
     const user = (req as any).user as Profile;
     const { market_id, category_id, quantity_kg, description, record_date } = req.body;
@@ -1662,7 +1699,7 @@ function formatPickup(p: PickupRequest) {
   };
 }
 
-apiRouter.post('/pickups', requireRole(['ADMIN', 'MARKET_MANAGER']), async (req, res) => {
+apiRouter.post(['/pickups', '/pickups/request'], requireRole(['ADMIN', 'MARKET_MANAGER']), async (req, res) => {
   try {
     const { waste_record_id, notes } = req.body;
     const waste = wasteRecords.find(w => w.id === waste_record_id);
@@ -1793,7 +1830,7 @@ apiRouter.post('/pickups/:id/accept', requireRole(['ADMIN', 'COLLECTOR']), async
   }
 });
 
-apiRouter.post('/pickups/:id/collect', requireRole(['ADMIN', 'COLLECTOR']), async (req, res) => {
+apiRouter.post(['/pickups/:id/collect', '/pickups/:id/complete'], requireRole(['ADMIN', 'COLLECTOR']), async (req, res) => {
   try {
     const user = (req as any).user as Profile;
     const pickup = pickupRequests.find(p => p.id === req.params.id);
@@ -1964,10 +2001,38 @@ apiRouter.get('/impact/records', (req, res) => {
   }
 });
 
+apiRouter.get('/impact/market/:id', (req, res) => {
+  try {
+    const m = markets.find(x => x.id === req.params.id);
+    if (!m) return res.status(404).json({ error: 'Market not found.', detail: 'Market not found.' });
+    const marketImpact = impactRecords.filter(i => i.market_id === m.id);
+    const marketWaste = wasteRecords.filter(w => w.market_id === m.id);
+    const totalWaste = marketWaste.reduce((sum, w) => sum + w.quantity_kg, 0);
+    const totalRecovered = marketImpact.reduce((sum, i) => sum + i.quantity_recovered_kg, 0);
+    const totalRecycled = marketImpact.reduce((sum, i) => sum + i.quantity_recycled_kg, 0);
+    const totalComposted = marketImpact.reduce((sum, i) => sum + i.quantity_composted_kg, 0);
+    const totalValue = marketImpact.reduce((sum, i) => sum + i.estimated_value, 0);
+    const totalCo2 = marketImpact.reduce((sum, i) => sum + i.co2_impact_estimate, 0);
+
+    res.json({
+      market_id: m.id,
+      market_name: m.name,
+      total_waste_registered_kg: Math.round(totalWaste * 10) / 10,
+      total_waste_recovered_kg: Math.round(totalRecovered * 10) / 10,
+      total_waste_recycled_kg: Math.round(totalRecycled * 10) / 10,
+      total_waste_composted_kg: Math.round(totalComposted * 10) / 10,
+      total_estimated_value_bdt: Math.round(totalValue * 100) / 100,
+      total_co2_impact_kg: Math.round(totalCo2 * 10) / 10,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve market impact', detail: err.message });
+  }
+});
+
 // ------------------------------------------
 // 6. Sustainability Scoring
 // ------------------------------------------
-apiRouter.get('/sustainability/market/:id', (req, res) => {
+apiRouter.get(['/sustainability/market/:id', '/sustainability/score/:id'], (req, res) => {
   try {
     const m = markets.find(x => x.id === req.params.id);
     if (!m) return res.status(404).json({ error: 'Market not found.', detail: 'Market not found.' });
@@ -1995,7 +2060,7 @@ apiRouter.get('/sustainability/markets', (req, res) => {
 // ------------------------------------------
 // 7. Dashboard Analytics
 // ------------------------------------------
-apiRouter.get('/dashboard/stats', requireAuth, (req, res) => {
+apiRouter.get(['/dashboard/stats', '/dashboard/admin', '/dashboard/market-manager', '/dashboard/collector'], requireAuth, (req, res) => {
   try {
     const user = (req as any).user as Profile;
     let targetMarketId = req.query.market_id as string | undefined;
