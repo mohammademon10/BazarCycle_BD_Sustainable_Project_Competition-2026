@@ -16,3 +16,7 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        value: 1079966218053-p7aekvpq7lar4ljpdgh3m838ir1309tl.apps.googleusercontent.com
+      - key: GOOGLE_CLIENT_ID
+        value: 1079966218053-p7aekvpq7lar4ljpdgh3m838ir1309tl.apps.googleusercontent.com

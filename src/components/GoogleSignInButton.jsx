@@ -19,8 +19,8 @@ export default function GoogleSignInButton({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [gisError, setGisError] = useState(null);
 
-  // Client ID from Vite env or fallback demo ID
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '184918142537-bazarcycle-demo.apps.googleusercontent.com';
+  // Client ID from Vite env or user's authorized Google Cloud Client ID
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1079966218053-p7aekvpq7lar4ljpdgh3m838ir1309tl.apps.googleusercontent.com';
 
   useEffect(() => {
     let checkInterval = null;
