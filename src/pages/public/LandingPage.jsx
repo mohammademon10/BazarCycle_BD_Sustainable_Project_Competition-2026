@@ -16,7 +16,10 @@ import {
   MapPin,
   Fish,
   Sprout,
-  PackageCheck
+  PackageCheck,
+  Play,
+  ExternalLink,
+  Video
 } from 'lucide-react';
 import SafeImage from '../../components/SafeImage';
 import { useAuth } from '../../context/AuthContext';
@@ -78,6 +81,7 @@ export default function LandingPage() {
 
   // Scroll-reveal refs for major sections
   const [metricsRef, metricsVisible] = useScrollReveal({ threshold: 0.2 });
+  const [videoRef, videoVisible] = useScrollReveal({ threshold: 0.15 });
   const [journeyRef, journeyVisible] = useScrollReveal({ threshold: 0.15 });
   const [featuresRef, featuresVisible] = useScrollReveal({ threshold: 0.15 });
   const [productsRef, productsVisible] = useScrollReveal({ threshold: 0.15 });
@@ -145,9 +149,17 @@ export default function LandingPage() {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
 
+                <a
+                  href="#video-overview"
+                  className="px-5 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm sm:text-base shadow-md shadow-slate-900/10 transition-all duration-200 hover:-translate-y-0.5 flex items-center space-x-2"
+                >
+                  <Play className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                  <span>Watch Video Tour</span>
+                </a>
+
                 <Link
                   to="/how-it-works"
-                  className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-sm sm:text-base border border-slate-300 shadow-xs transition-all duration-200 hover:-translate-y-0.5"
+                  className="px-5 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-sm sm:text-base border border-slate-300 shadow-xs transition-all duration-200 hover:-translate-y-0.5"
                 >
                   See How It Works
                 </Link>
@@ -317,7 +329,102 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 4. THE PROBLEM SECTION (Section 24) */}
+      {/* 4. FULL PROJECT OVERVIEW VIDEO (Cinema Presentation Showcase) */}
+      <section className="py-16 sm:py-24 bg-slate-950 text-white relative overflow-hidden" id="video-overview">
+        {/* Ambient lighting glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-emerald-600/25 via-teal-500/20 to-sky-600/25 blur-3xl pointer-events-none -z-0" />
+        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-slate-950 to-transparent pointer-events-none -z-0" />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Header */}
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold tracking-wider uppercase mb-3.5 shadow-sm">
+              <Video className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Full System Walkthrough & Field Demo</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+              Watch BazarCycle BD in Action
+            </h2>
+            <p className="text-lg sm:text-xl text-emerald-400 font-extrabold mt-2">
+              সম্পূর্ণ প্রজেক্টের ভিডিও উপস্থাপনা ও কার্যপ্রণালী
+            </p>
+            <p className="text-sm sm:text-base text-slate-300 mt-3 leading-relaxed max-w-2xl mx-auto">
+              A comprehensive narrated walkthrough illustrating Dhaka's wholesale market waste challenge, deterministic rule execution, concurrency-safe collector dispatch, and real-time sustainability scoring.
+            </p>
+          </div>
+
+          {/* Video Player Cinema Frame */}
+          <div ref={videoRef} className={`relative rounded-3xl p-2.5 sm:p-4 bg-gradient-to-b from-slate-800/90 via-slate-900/95 to-slate-950 border border-slate-700/80 shadow-2xl shadow-emerald-950/60 ${videoVisible ? 'reveal-visible' : 'reveal-hidden'}`}>
+            {/* Top Bar with stream metadata & external link */}
+            <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 border-b border-slate-800/90 text-xs text-slate-400">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block animate-pulse"></span>
+                <span className="font-bold text-slate-200">YouTube Official Presentation</span>
+                <span className="hidden sm:inline text-slate-600">•</span>
+                <span className="hidden sm:inline text-slate-400">Sustainable Project Competition 2026</span>
+              </div>
+              <a
+                href="https://youtu.be/_28NDrSCLAI"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+              >
+                <span>Watch on YouTube</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            {/* Embedded 16:9 responsive video iframe */}
+            <div className="relative rounded-2xl overflow-hidden aspect-video bg-black shadow-inner mt-2">
+              <iframe
+                className="w-full h-full border-0"
+                src="https://www.youtube-nocookie.com/embed/_28NDrSCLAI?rel=0&modestbranding=1"
+                title="BazarCycle BD - Complete Project Overview Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
+
+            {/* Video Footer Highlights Grid */}
+            <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left border-t border-slate-800/80 mt-3">
+              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-emerald-500/40 transition-colors">
+                <div className="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider">01. The Problem</div>
+                <h4 className="text-sm font-bold text-white mt-1">Dhaka Market Crisis</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-snug">
+                  400+ bazars generating 22,000+ tons daily with open dumps releasing potent methane.
+                </p>
+              </div>
+
+              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-sky-500/40 transition-colors">
+                <div className="text-[11px] font-extrabold text-sky-400 uppercase tracking-wider">02. Rule Engine</div>
+                <h4 className="text-sm font-bold text-white mt-1">Deterministic Routing</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-snug">
+                  Zero-hallucination classification into organic compost, fish feed & recycled polymers.
+                </p>
+              </div>
+
+              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-amber-500/40 transition-colors">
+                <div className="text-[11px] font-extrabold text-amber-400 uppercase tracking-wider">03. Dispatch Safety</div>
+                <h4 className="text-sm font-bold text-white mt-1">Atomic Concurrency</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-snug">
+                  Row-level database locks ensure conflict-free pickup claims by independent collectors.
+                </p>
+              </div>
+
+              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-purple-500/40 transition-colors">
+                <div className="text-[11px] font-extrabold text-purple-400 uppercase tracking-wider">04. Real Impact</div>
+                <h4 className="text-sm font-bold text-white mt-1">Auditable 0–100 Score</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-snug">
+                  Direct SQL aggregation of segregation, diversion rates, and avoided landfill emissions.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. THE PROBLEM SECTION (Section 24) */}
       <section className="py-16 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
