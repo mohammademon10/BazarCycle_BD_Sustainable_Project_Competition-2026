@@ -39,11 +39,59 @@ const DEFAULT_METRICS = {
   active_collectors_count: 2,
 };
 
+const VIDEO_HIGHLIGHTS = [
+  {
+    id: 'problem',
+    step: '01',
+    time: '0:10',
+    seconds: 10,
+    tag: 'THE PROBLEM',
+    title: 'Dhaka Market Crisis',
+    desc: '400+ bazars generating 22,000+ tons daily with open dumps releasing potent methane.',
+  },
+  {
+    id: 'rules',
+    step: '02',
+    time: '1:03',
+    seconds: 63,
+    tag: 'RULE ENGINE',
+    title: 'Deterministic Routing',
+    desc: 'Zero-hallucination classification into organic compost, fish feed & recycled polymers.',
+  },
+  {
+    id: 'dispatch',
+    step: '03',
+    time: '1:30',
+    seconds: 90,
+    tag: 'DISPATCH SAFETY',
+    title: 'Atomic Concurrency',
+    desc: 'Row-level database locks ensure conflict-free pickup claims by independent collectors.',
+  },
+  {
+    id: 'impact',
+    step: '04',
+    time: '1:54',
+    seconds: 114,
+    tag: 'REAL IMPACT',
+    title: 'Auditable 0–100 Score',
+    desc: 'Direct SQL aggregation of segregation, diversion rates, and avoided landfill emissions.',
+  },
+];
+
 export default function LandingPage() {
   const { quickDemoLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(DEFAULT_METRICS);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [activeHighlight, setActiveHighlight] = useState(0);
+  const [videoTime, setVideoTime] = useState(0);
+  const [autoPlayVideo, setAutoPlayVideo] = useState(false);
+
+  const handleChapterClick = (index, seconds) => {
+    setActiveHighlight(index);
+    setVideoTime(seconds);
+    setAutoPlayVideo(true);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -340,84 +388,133 @@ export default function LandingPage() {
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold tracking-wider uppercase mb-3.5 shadow-sm">
               <Video className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Full System Walkthrough & Field Demo</span>
+              <span>SYSTEM WALKTHROUGH & ARCHITECTURE</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
               Watch BazarCycle BD in Action
             </h2>
-            <p className="text-lg sm:text-xl text-emerald-400 font-extrabold mt-2">
-              সম্পূর্ণ প্রজেক্টের ভিডিও উপস্থাপনা ও কার্যপ্রণালী
-            </p>
-            <p className="text-sm sm:text-base text-slate-300 mt-3 leading-relaxed max-w-2xl mx-auto">
-              A comprehensive narrated walkthrough illustrating Dhaka's wholesale market waste challenge, deterministic rule execution, concurrency-safe collector dispatch, and real-time sustainability scoring.
+            <p className="text-sm sm:text-base text-slate-300 mt-3.5 leading-relaxed max-w-3xl mx-auto font-normal">
+              An end-to-end walkthrough demonstrating automated waste routing, deterministic classification, real-time collector dispatch, and sustainability scoring.
             </p>
           </div>
 
-          {/* Video Player Cinema Frame */}
-          <div ref={videoRef} className={`relative rounded-3xl p-2.5 sm:p-4 bg-gradient-to-b from-slate-800/90 via-slate-900/95 to-slate-950 border border-slate-700/80 shadow-2xl shadow-emerald-950/60 ${videoVisible ? 'reveal-visible' : 'reveal-hidden'}`}>
-            {/* Top Bar with stream metadata & external link */}
-            <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 border-b border-slate-800/90 text-xs text-slate-400">
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block animate-pulse"></span>
-                <span className="font-bold text-slate-200">YouTube Official Presentation</span>
-                <span className="hidden sm:inline text-slate-600">•</span>
-                <span className="hidden sm:inline text-slate-400">Sustainable Project Competition 2026</span>
+          <div ref={videoRef} className={videoVisible ? 'reveal-visible' : 'reveal-hidden'}>
+            {/* Video Player Cinema Frame */}
+            <div className="relative rounded-3xl p-2.5 sm:p-4 bg-slate-900/90 border border-slate-800/90 shadow-2xl shadow-emerald-950/40">
+              {/* Top Bar with stream metadata & external link */}
+              <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 border-b border-slate-800/90 text-xs text-slate-400">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block animate-pulse" />
+                  <span className="font-bold text-slate-200">YouTube Official Presentation</span>
+                  <span className="hidden sm:inline text-slate-600">•</span>
+                  <span className="hidden sm:inline text-slate-400">Sustainable Project Competition 2026</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  {autoPlayVideo && (
+                    <span className="hidden sm:inline-flex items-center space-x-1.5 text-[11px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-700/60">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      <span>Playing @ {VIDEO_HIGHLIGHTS[activeHighlight].time}</span>
+                    </span>
+                  )}
+                  <a
+                    href="https://youtu.be/_28NDrSCLAI"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center space-x-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+                  >
+                    <span>Watch on YouTube</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
-              <a
-                href="https://youtu.be/_28NDrSCLAI"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
-              >
-                <span>Watch on YouTube</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+
+              {/* Embedded 16:9 responsive video iframe */}
+              <div className="relative rounded-2xl overflow-hidden aspect-video bg-black shadow-inner mt-2.5">
+                <iframe
+                  key={`video-${videoTime}-${autoPlayVideo}`}
+                  className="w-full h-full border-0"
+                  src={`https://www.youtube-nocookie.com/embed/_28NDrSCLAI?start=${videoTime}${autoPlayVideo ? '&autoplay=1' : ''}&rel=0&modestbranding=1`}
+                  title="BazarCycle BD - Complete Project Overview Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              </div>
             </div>
 
-            {/* Embedded 16:9 responsive video iframe */}
-            <div className="relative rounded-2xl overflow-hidden aspect-video bg-black shadow-inner mt-2">
-              <iframe
-                className="w-full h-full border-0"
-                src="https://www.youtube-nocookie.com/embed/_28NDrSCLAI?rel=0&modestbranding=1"
-                title="BazarCycle BD - Complete Project Overview Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-              />
-            </div>
-
-            {/* Video Footer Highlights Grid */}
-            <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left border-t border-slate-800/80 mt-3">
-              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-emerald-500/40 transition-colors">
-                <div className="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider">01. The Problem</div>
-                <h4 className="text-sm font-bold text-white mt-1">Dhaka Market Crisis</h4>
-                <p className="text-xs text-slate-400 mt-1 leading-snug">
-                  400+ bazars generating 22,000+ tons daily with open dumps releasing potent methane.
-                </p>
+            {/* Separated Dynamic Highlights Cards Grid */}
+            <div className="mt-8 sm:mt-10">
+              <div className="flex items-center justify-between mb-4 px-1">
+                <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Interactive Chapters (Click to Jump Video)</span>
+                </div>
+                <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                  Click any milestone to seek video
+                </span>
               </div>
 
-              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-sky-500/40 transition-colors">
-                <div className="text-[11px] font-extrabold text-sky-400 uppercase tracking-wider">02. Rule Engine</div>
-                <h4 className="text-sm font-bold text-white mt-1">Deterministic Routing</h4>
-                <p className="text-xs text-slate-400 mt-1 leading-snug">
-                  Zero-hallucination classification into organic compost, fish feed & recycled polymers.
-                </p>
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {VIDEO_HIGHLIGHTS.map((item, idx) => {
+                  const isActive = activeHighlight === idx;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleChapterClick(idx, item.seconds)}
+                      className={`text-left p-4 sm:p-5 rounded-2xl border transition-all duration-200 cursor-pointer relative group flex flex-col justify-between ${
+                        isActive
+                          ? 'bg-slate-900 border-emerald-500 shadow-xl shadow-emerald-950/60 ring-2 ring-emerald-500/40 -translate-y-1'
+                          : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800 hover:border-slate-700 hover:-translate-y-0.5'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2.5">
+                          <span className={`text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
+                            isActive 
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                              : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {item.step}. {item.tag}
+                          </span>
+                          <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 ${
+                            isActive
+                              ? 'bg-emerald-500 text-slate-950 font-black'
+                              : 'bg-slate-800/80 text-emerald-400 group-hover:bg-slate-800'
+                          }`}>
+                            <Play className="w-2.5 h-2.5 fill-current" />
+                            <span>{item.time}</span>
+                          </span>
+                        </div>
+                        
+                        <h4 className={`text-base font-bold transition-colors ${
+                          isActive ? 'text-emerald-300 font-black' : 'text-white group-hover:text-emerald-300'
+                        }`}>
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </div>
 
-              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-amber-500/40 transition-colors">
-                <div className="text-[11px] font-extrabold text-amber-400 uppercase tracking-wider">03. Dispatch Safety</div>
-                <h4 className="text-sm font-bold text-white mt-1">Atomic Concurrency</h4>
-                <p className="text-xs text-slate-400 mt-1 leading-snug">
-                  Row-level database locks ensure conflict-free pickup claims by independent collectors.
-                </p>
-              </div>
-
-              <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-purple-500/40 transition-colors">
-                <div className="text-[11px] font-extrabold text-purple-400 uppercase tracking-wider">04. Real Impact</div>
-                <h4 className="text-sm font-bold text-white mt-1">Auditable 0–100 Score</h4>
-                <p className="text-xs text-slate-400 mt-1 leading-snug">
-                  Direct SQL aggregation of segregation, diversion rates, and avoided landfill emissions.
-                </p>
+                      <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+                        <span className={isActive ? 'text-emerald-400 font-bold flex items-center space-x-1' : 'text-slate-500 group-hover:text-slate-300'}>
+                          {isActive ? (
+                            <>
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block mr-1" />
+                              <span>Now Playing</span>
+                            </>
+                          ) : (
+                            <span>Click to jump</span>
+                          )}
+                        </span>
+                        <span className="text-slate-500 group-hover:text-emerald-400 transition-colors font-mono">
+                          {item.time} →
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
