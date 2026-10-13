@@ -13,7 +13,10 @@ import {
   Layers,
   ArrowDown,
   Store,
-  MapPin
+  MapPin,
+  Fish,
+  Sprout,
+  PackageCheck
 } from 'lucide-react';
 import SafeImage from '../../components/SafeImage';
 import { useAuth } from '../../context/AuthContext';
@@ -77,6 +80,7 @@ export default function LandingPage() {
   const [metricsRef, metricsVisible] = useScrollReveal({ threshold: 0.2 });
   const [journeyRef, journeyVisible] = useScrollReveal({ threshold: 0.15 });
   const [featuresRef, featuresVisible] = useScrollReveal({ threshold: 0.15 });
+  const [productsRef, productsVisible] = useScrollReveal({ threshold: 0.15 });
   const [ctaRef, ctaVisible] = useScrollReveal({ threshold: 0.2 });
 
   // Count-up for hero metric stat
@@ -499,7 +503,252 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 6. CALL TO ACTION SECTION */}
+      {/* 6. UPCYCLED COMMERCIAL PRODUCTS (Value-Added Circular Outputs) */}
+      <section className="py-16 sm:py-24 bg-gradient-to-b from-slate-50 via-emerald-50/20 to-slate-50 border-t border-slate-200" id="products">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-300 text-emerald-900 text-xs font-bold tracking-wide uppercase shadow-xs mb-3.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Commercial Value-Added Bio-Products</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight">
+              Commercial Upcycled Products
+            </h2>
+            <p className="text-lg sm:text-xl text-emerald-800 font-extrabold mt-2">
+              বাজারের বর্জ্য থেকে টেকসই বাণিজ্যিক পণ্য
+            </p>
+            <p className="text-sm sm:text-base text-slate-600 mt-3 leading-relaxed">
+              BazarCycle BD bridges wholesale markets directly with verified circular processing pipelines. Discarded market waste is transformed into certified, high-yield organic compost and high-protein aquaculture feed pellets—substituting costly synthetic inputs and preventing toxic landfill methane.
+            </p>
+          </div>
+
+          {/* 2 Flagship Products Showcase */}
+          <div ref={productsRef} className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 ${productsVisible ? 'reveal-visible' : 'reveal-hidden'}`}>
+            
+            {/* Product 1: Organic Fish Feed (মাছের খাবার) */}
+            <div className="bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:border-sky-300 transition-all duration-300 flex flex-col group">
+              <div className="relative overflow-hidden bg-slate-900 aspect-[16/9]">
+                <SafeImage
+                  src="/images/bazarcycle_organic_fish_feed.jpg"
+                  alt="BazarCycle Organic Fish Feed (মাছের খাবার) - 100% Natural & Nutritious, Made from Fish & Organic Waste"
+                  aspectRatio="aspect-video"
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+                
+                {/* Floating Tags */}
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-sky-600/90 backdrop-blur-md text-white text-xs font-bold flex items-center space-x-1.5 shadow-md">
+                    <Fish className="w-3.5 h-3.5" />
+                    <span>Aquaculture Grade</span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-700/90 backdrop-blur-md text-white text-xs font-bold shadow-md">
+                    ১০০% প্রাকৃতিক ও পুষ্টিকর
+                  </span>
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="text-[11px] font-bold text-sky-300 uppercase tracking-wider">
+                    Made from Fish & Organic Waste
+                  </div>
+                  <div className="text-lg sm:text-xl font-extrabold text-white mt-0.5">
+                    মাছ ও জৈব বর্জ্য থেকে প্রস্তুত উচ্চ-পুষ্টিকর ফিড
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between space-y-6">
+                <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-200">
+                        High-Protein Feed Pellets
+                      </span>
+                      <h3 className="text-2xl font-black text-slate-900 mt-2">
+                        মাছের খাবার <span className="text-slate-500 font-semibold text-lg sm:text-xl">/ Organic Fish Feed</span>
+                      </h3>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[11px] text-slate-500 block font-medium">Estimated Value</span>
+                      <span className="text-lg font-black text-emerald-700">৳৩৫–৫০ <span className="text-xs font-bold text-slate-500">/ KG</span></span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-slate-600 mt-3 leading-relaxed">
+                    Fresh fish offal, viscera, bones, and clean market protein trimmings sourced from wholesale fish sheds are processed through flash dehydration, sterilization, and precision extrusion into nutrient-rich pellets.
+                  </p>
+
+                  {/* Bullet Highlights */}
+                  <div className="mt-5 space-y-2.5">
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>High Digestible Protein:</strong> 35%+ crude protein with natural amino acids & phosphorus.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Tailored for BD Aquaculture:</strong> Rapid weight gain for Rui, Katla, Tilapia, and Pangas culture.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>100% Natural & Nutritious:</strong> No chemical additives, synthetic hormones, or artificial dyes.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Zero Foul Water Accumulation:</strong> Eliminates foul market rotting odours and landfill methane.</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Spec Badge */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span className="flex items-center space-x-1.5 font-medium">
+                    <ShieldCheck className="w-4 h-4 text-sky-600" />
+                    <span>Lab Tested & Sterilized</span>
+                  </span>
+                  <span className="font-bold text-slate-700">Pellet Size: 2mm – 4mm</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Product 2: Organic Compost (জৈব সার) */}
+            <div className="bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:border-emerald-300 transition-all duration-300 flex flex-col group">
+              <div className="relative overflow-hidden bg-slate-900 aspect-[16/9]">
+                <SafeImage
+                  src="/images/bazarcycle_organic_compost.jpg"
+                  alt="BazarCycle Organic Compost (জৈব সার) - 100% Natural & Eco-friendly, Made from Vegetable & Organic Waste"
+                  aspectRatio="aspect-video"
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+                
+                {/* Floating Tags */}
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-emerald-600/90 backdrop-blur-md text-white text-xs font-bold flex items-center space-x-1.5 shadow-md">
+                    <Leaf className="w-3.5 h-3.5" />
+                    <span>Bio-Fertilizer Grade</span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-teal-700/90 backdrop-blur-md text-white text-xs font-bold shadow-md">
+                    ১০০% প্রাকৃতিক ও পরিবেশবান্ধব
+                  </span>
+                </div>
+
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider">
+                    Made from Vegetable & Organic Waste
+                  </div>
+                  <div className="text-lg sm:text-xl font-extrabold text-white mt-0.5">
+                    সবজি ও জৈব বর্জ্য থেকে প্রস্তুত প্রাকৃতিক জৈব সার
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8 flex-1 flex flex-col justify-between space-y-6">
+                <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                        Aerobic Windrow Compost
+                      </span>
+                      <h3 className="text-2xl font-black text-slate-900 mt-2">
+                        জৈব সার <span className="text-slate-500 font-semibold text-lg sm:text-xl">/ Organic Compost</span>
+                      </h3>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[11px] text-slate-500 block font-medium">Estimated Value</span>
+                      <span className="text-lg font-black text-emerald-700">৳১৫–২৫ <span className="text-xs font-bold text-slate-500">/ KG</span></span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-slate-600 mt-3 leading-relaxed">
+                    Unsold vegetable scrap, leafy biomass, fruit discards, and organic market trimmings undergo temperature-regulated aerobic fermentation and vermicomposting to form dark, rich soil conditioner.
+                  </p>
+
+                  {/* Bullet Highlights */}
+                  <div className="mt-5 space-y-2.5">
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Soil Microbiology Restoration:</strong> Boosts beneficial microbial life, aeration, and root development.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>High Moisture Retention:</strong> Retains water and essential plant micronutrients (N, P, K, Ca, Mg).</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>100% Eco-Friendly & Natural:</strong> Safe for commercial vegetable horticulture and rooftop garden pots.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-xs sm:text-sm text-slate-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>450 kg CO₂e Avoided per Ton:</strong> Diverts organic greens from anaerobic open landfill decomposition.</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Spec Badge */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span className="flex items-center space-x-1.5 font-medium">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>C:N Ratio Optimized (20:1)</span>
+                  </span>
+                  <span className="font-bold text-slate-700">Moisture Content: &lt; 20%</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Value Chain Pipeline Card */}
+          <div className="mt-12 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm">
+            <h4 className="text-base sm:text-lg font-bold text-slate-900 mb-6 text-center">
+              The Circular Value-Addition Pipeline
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-lg mb-3 shadow-xs">
+                  01
+                </div>
+                <h5 className="font-bold text-slate-900 text-sm">Source Segregation</h5>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  Produce trimmings & fish offal separated directly at wholesale market sheds.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-sky-100/60 border border-sky-200/80">
+                <div className="w-12 h-12 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-black text-lg mb-3 shadow-xs">
+                  02
+                </div>
+                <h5 className="font-bold text-slate-900 text-sm">Digitized Dispatch</h5>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  BazarCycle coordinates verified collectors via concurrency-safe atomic pickup locks.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-amber-100/60 border border-amber-200/80">
+                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-lg mb-3 shadow-xs">
+                  03
+                </div>
+                <h5 className="font-bold text-slate-900 text-sm">Bio-Refining & Milling</h5>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  Aerobic decomposition for compost; sterilization & pelletizing for aquaculture feed.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-purple-100/60 border border-purple-200/80">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-lg mb-3 shadow-xs">
+                  04
+                </div>
+                <h5 className="font-bold text-slate-900 text-sm">Commercial Distribution</h5>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  Standardized eco-packaged products distributed to farmers and aquaculture fisheries.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. CALL TO ACTION SECTION */}
       <section className="py-16 bg-gradient-to-br from-emerald-800 via-forest-900 to-slate-900 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-700/50 border border-emerald-500/40 text-emerald-200 text-xs font-semibold">

@@ -26,6 +26,7 @@
 **[🎬 Overview Video](#-project-overview-video)** • 
 **[🖼️ Poster](#️-project-poster)** • 
 **[📸 Live Screenshots](#-visual-tour--screenshots)** • 
+**[🌾 Upcycled Products](#-upcycled-commercial-products-from-bazar-waste)** • 
 **[🔄 Core Workflow](#-core-workflow)** • 
 **[🧠 Rule Engine](#-deterministic-waste-to-resource-rule-engine)** • 
 **[🏗️ Architecture](#️-system-architecture)** • 
@@ -280,6 +281,57 @@ The platform enforces strict role-based access control (RBAC) powered by signed 
 ### Valuation & Environmental Impact Equations
 $$\text{Estimated Resource Value (BDT)} = \text{Quantity (KG)} \times \text{Unit Rate (BDT/KG)}$$
 $$\text{Avoided Landfill Emissions } (CO_2e\text{ KG}) = \text{Quantity (KG)} \times \text{CO}_2\text{ Factor}$$
+
+---
+
+## 🌾 Upcycled Commercial Products from Bazar Waste (বাজারের বর্জ্য থেকে টেকসই বাণিজ্যিক পণ্য)
+
+BazarCycle BD transforms market discards from open municipal liabilities into high-grade, commercial agricultural and aquaculture inputs. By coordinating segregated collection directly from wholesale market sheds, raw materials bypass open dumps and feed into certified bioprocessing facilities:
+
+<div align="center">
+
+| 🐟 BazarCycle মাছের খাবার (Organic Fish Feed) | 🌱 BazarCycle জৈব সার (Organic Compost) |
+| :---: | :---: |
+| <img src="screenshots/bazarcycle_organic_fish_feed.jpg" alt="BazarCycle Organic Fish Feed" width="100%"/> | <img src="screenshots/bazarcycle_organic_compost.jpg" alt="BazarCycle Organic Compost" width="100%"/> |
+| **১০০% প্রাকৃতিক ও পুষ্টিকর • 100% Natural & Nutritious**<br/>*Made from Fish & Organic Waste* | **১০০% প্রাকৃতিক ও পরিবেশবান্ধব • 100% Natural & Eco-friendly**<br/>*Made from Vegetable & Organic Waste* |
+
+</div>
+
+### 1. 🐟 BazarCycle মাছের খাবার (Organic Fish Feed)
+- **Primary Source Material:** Fresh fish viscera, offal, fins, heads, bones, and trimmings from wholesale fish markets (e.g., Karwan Bazar, Jatrabari).
+- **Processing Technology:** Clean sorting ➔ Flash thermal dehydration & sterilization ➔ Fine grinding & amino fortification ➔ High-pressure twin-screw extrusion into floating/sinking pellets (2mm–4mm).
+- **Nutritional Profile:**
+  - **Crude Protein:** $\ge 35\%$ highly digestible animal protein.
+  - **Calcium & Phosphorus:** Naturally derived from fish bone meal for strong skeletal growth.
+  - **Omega Fatty Acids:** Promotes disease resistance and rapid weight gain in freshwater fish (Rui, Katla, Tilapia, Pangas).
+  - **Additives:** 0% synthetic chemicals, zero artificial antibiotics or hormones.
+- **Economic & Ecological Value:**
+  - **Packaged Commercial Value:** ৳ 35.00 – ৳ 50.00 / KG.
+  - **Avoided Landfill Impact:** $0.60\text{ kg } CO_2e\text{/kg}$ avoided emissions, eliminating severe foul water drainage and market odor.
+
+### 2. 🌱 BazarCycle জৈব সার (Organic Compost)
+- **Primary Source Material:** Trimmings of green vegetables (cabbage leaves, gourds, leafy greens), fruit peelings, bruised produce, and organic market biomass.
+- **Processing Technology:** Segregated shed collection ➔ Shredding & C:N ratio balancing (25:1 to 30:1) ➔ Aerobic windrow composting with temperature monitoring ($55^\circ\text{C} - 65^\circ\text{C}$ to eradicate weed seeds and pathogens) ➔ Screening and moisture-proof packaging.
+- **Agronomic Profile:**
+  - **Organic Matter:** $\ge 40\%$ organic carbon content.
+  - **Macro-Nutrients:** Naturally balanced N, P, K with vital micronutrients (Ca, Mg, Fe, Zn).
+  - **Soil Health:** Restores depleted soil biology, optimizes water retention, and reduces reliance on imported chemical urea/DAP.
+  - **Safety:** Pathogen-free, heavy metal tested, and 100% eco-friendly for crop farming and rooftop gardens.
+- **Economic & Ecological Value:**
+  - **Packaged Commercial Value:** ৳ 15.00 – ৳ 25.00 / KG.
+  - **Avoided Landfill Impact:** $0.45\text{ kg } CO_2e\text{/kg}$ avoided emissions, preventing anaerobic methane ($CH_4$) generation in municipal dumpsites.
+
+### 🔄 Comparison & Value-Chain Transformation
+
+| Specification | BazarCycle Organic Fish Feed (মাছের খাবার) | BazarCycle Organic Compost (জৈব সার) |
+| :--- | :--- | :--- |
+| **Input Waste** | Fish offal, viscera, bones & protein trimmings | Vegetable scraps, fruit peels & biomass |
+| **Output Form** | Extruded pellets (2mm – 4mm) | Cured granular organic humus / powder |
+| **Key Function** | High-protein feed for freshwater aquaculture | Soil fertility restoration & moisture retention |
+| **Target End-Users** | Commercial fisheries, pond farmers, hatcheries | Vegetable farmers, horticulture & rooftop gardeners |
+| **Commercial Rate** | **৳ 35 – ৳ 50 / KG** | **৳ 15 – ৳ 25 / KG** |
+| **Avoided $CO_2e$** | **0.60 kg $CO_2e$ / KG** | **0.45 kg $CO_2e$ / KG** |
+| **Certification** | 100% Natural & Nutritious, Sterilized | 100% Natural & Eco-friendly, Pathogen-free |
 
 ---
 
