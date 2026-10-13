@@ -19,7 +19,11 @@ import {
   PackageCheck,
   Play,
   ExternalLink,
-  Video
+  Video,
+  HelpCircle,
+  MousePointer,
+  Activity,
+  Volume2
 } from 'lucide-react';
 import SafeImage from '../../components/SafeImage';
 import { useAuth } from '../../context/AuthContext';
@@ -78,6 +82,36 @@ const VIDEO_HIGHLIGHTS = [
   },
 ];
 
+const ROLE_PREVIEWS = {
+  MARKET_MANAGER: {
+    label: 'Market Manager',
+    tag: 'Live',
+    image: '/images/hero_market_bazar.jpg',
+    tickerLabel: 'Impact Ticker',
+    tickerValue: '12.4 Tons Today',
+    tickerDirection: '▲',
+    location: 'Active Deployment: Karwan Bazar, Dhaka',
+  },
+  COLLECTOR: {
+    label: 'Waste Collector',
+    tag: 'Active',
+    image: '/images/plastic_recycling_cage.jpg',
+    tickerLabel: 'Live Logistics',
+    tickerValue: '4 Batches Assigned',
+    tickerDirection: '●',
+    location: 'Active Route: Jatrabari Krishi Market',
+  },
+  ADMIN: {
+    label: 'Platform Admin',
+    tag: 'Demo',
+    image: '/images/market_produce_vendor.jpg',
+    tickerLabel: 'Network Hubs',
+    tickerValue: '100% Audit Verified',
+    tickerDirection: '★',
+    location: 'Citywide Hubs: 3 Active Dhaka Bazars',
+  },
+};
+
 export default function LandingPage() {
   const { quickDemoLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
@@ -86,6 +120,9 @@ export default function LandingPage() {
   const [activeHighlight, setActiveHighlight] = useState(0);
   const [videoTime, setVideoTime] = useState(0);
   const [autoPlayVideo, setAutoPlayVideo] = useState(false);
+  const [activeRoleTab, setActiveRoleTab] = useState('MARKET_MANAGER');
+  const [activePathway, setActivePathway] = useState(2); // Card 3 (Fiber Pathway) default active
+  const [activeHotspot, setActiveHotspot] = useState(null);
 
   const handleChapterClick = (index, seconds) => {
     setActiveHighlight(index);
@@ -142,143 +179,168 @@ export default function LandingPage() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden pt-10 pb-16 lg:pt-18 lg:pb-24 border-b border-slate-200/80 bg-white">
-        {/* Subtle decorative background gradient */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-teal-50/50 rounded-full blur-2xl pointer-events-none -z-10" />
+      {/* 1. HERO SECTION (Modernized, Dynamic & Role-Interactive) */}
+      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-br from-[#092C23] via-[#051A18] to-[#041412] text-white border-b border-emerald-950/60">
+        {/* Subtle contour / isometric lines overlay */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="contour-pattern-hero" width="160" height="160" patternUnits="userSpaceOnUse">
+              <path d="M0,40 Q40,0 80,40 T160,40 M0,80 Q40,120 80,80 T160,80 M0,120 Q40,80 80,120 T160,120" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#contour-pattern-hero)" />
+        </svg>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Soft circular ambient glow blobs */}
+        <div className="absolute top-10 left-10 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none -z-0" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl pointer-events-none -z-0" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
             
-            {/* Left Content */}
+            {/* Left Column (Typography, Value Prop & Dynamic Action Flow) */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Modern Live Pill Badge */}
-              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-900 text-xs font-semibold tracking-wide shadow-xs max-w-full">
+              {/* Top Micro-Pill */}
+              <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/30 text-emerald-300 text-xs font-semibold tracking-wide shadow-sm max-w-full">
                 <span className="flex h-2 w-2 relative shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
                 </span>
-                <span className="font-bold text-emerald-950 truncate">National Circular Initiative</span>
-                <span className="hidden md:inline text-emerald-300">•</span>
-                <span className="hidden md:inline text-emerald-800 font-medium">Smart Waste-to-Resource Platform</span>
+                <span className="font-bold text-emerald-200 truncate">National Circular Initiative</span>
+                <span className="text-emerald-500">•</span>
+                <span className="text-emerald-300/90 font-medium">Smart Waste-to-Resource Platform</span>
               </div>
 
-              {/* Polished Main Heading */}
-              <h1 className="text-2xl sm:text-4xl lg:text-6xl font-extrabold text-slate-950 tracking-tight leading-tight sm:leading-[1.12]">
+              {/* Main Heading */}
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight sm:leading-[1.12]">
                 Turn Market Waste Into{' '}
-                <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-forest-600 bg-clip-text text-transparent block sm:inline">
+                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent block sm:inline">
                   Local Resources.
                 </span>
               </h1>
 
-              {/* Refined Descriptive Copy */}
-              <p className="text-sm sm:text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl font-normal">
+              {/* Sub-headline */}
+              <p className="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed max-w-2xl font-normal">
                 An intelligent sustainability network empowering Bangladesh wholesale bazars to log daily organic waste, match verified recyclers, and divert produce discards into high-grade compost, biogas, and animal feed.
               </p>
 
-              {/* High-End Slogan Pill */}
-              <div className="flex items-center space-x-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200/90 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 w-fit max-w-full shadow-xs">
-                <div className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-md bg-emerald-600 text-white font-bold text-[10px] sm:text-xs shadow-xs shrink-0">
+              {/* Value Pill */}
+              <div className="flex items-center space-x-2.5 text-xs sm:text-sm font-semibold text-emerald-100 bg-emerald-950/60 border border-emerald-500/30 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 w-fit max-w-full shadow-inner">
+                <div className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-md bg-emerald-500 text-slate-950 font-black text-[10px] sm:text-xs shrink-0">
                   ✓
                 </div>
-                <span className="text-slate-900 font-bold tracking-tight">"Don't Dump It. Cycle It."</span>
-                <span className="hidden sm:inline text-slate-300">|</span>
-                <span className="hidden sm:inline text-slate-500 font-medium">Measurable Carbon & Economic Value</span>
+                <span className="text-emerald-200 font-bold tracking-tight">Role-Based Live Preview</span>
+                <span className="text-emerald-600">|</span>
+                <span className="text-emerald-300/80 font-medium">Measurable Carbon & Economic Value</span>
               </div>
 
-              {/* Action Buttons */}
+              {/* CTA Buttons */}
               <div className="flex flex-wrap items-center gap-3.5 pt-1">
-                <Link
-                  to="/login?mode=register"
-                  className="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/35 transition-all duration-200 flex items-center space-x-2 group hover:-translate-y-0.5"
-                >
-                  <span>Get Started Free</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                <div className="flex flex-col">
+                  <Link
+                    to="/login?mode=register"
+                    className="px-6 py-3.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 flex items-center space-x-2 group hover:-translate-y-0.5"
+                  >
+                    <span>Get Started Free</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <span className="text-[11px] text-slate-400 mt-1 pl-2">Free forever • 1-min setup</span>
+                </div>
 
                 <a
                   href="#video-overview"
-                  className="px-5 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm sm:text-base shadow-md shadow-slate-900/10 transition-all duration-200 hover:-translate-y-0.5 flex items-center space-x-2"
+                  className="px-5 py-3.5 rounded-full bg-emerald-950/70 hover:bg-emerald-900/80 text-emerald-200 hover:text-white font-semibold text-sm sm:text-base border border-emerald-500/30 shadow-md transition-all duration-200 hover:-translate-y-0.5 flex items-center space-x-2"
                 >
                   <Play className="w-4 h-4 text-emerald-400 fill-emerald-400" />
-                  <span>Watch Video Tour</span>
+                  <span>Watch Video</span>
                 </a>
 
                 <Link
                   to="/how-it-works"
-                  className="px-5 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-sm sm:text-base border border-slate-300 shadow-xs transition-all duration-200 hover:-translate-y-0.5"
+                  className="px-5 py-3.5 rounded-full text-slate-300 hover:text-emerald-300 font-semibold text-sm transition-all duration-200 hover:underline"
                 >
-                  See How It Works
+                  See How It Works →
                 </Link>
               </div>
 
-              {/* Refined Executive Demo Access Dock */}
-              <div className="pt-5 border-t border-slate-100">
+              {/* Role-Based Interactive Demo Switcher */}
+              <div className="pt-5 border-t border-emerald-900/60">
                 <div className="flex items-center justify-between mb-2.5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500 mr-1.5" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 mr-1.5" />
                     Instant Demo Portals (1-Click Access)
                   </p>
-                  <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Pre-configured judge logins</span>
+                  <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">1-Click live preview switch</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <button
-                    onClick={() => handleDemo('MARKET_MANAGER')}
-                    className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 text-xs font-bold border border-emerald-200 transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+                    type="button"
+                    onClick={() => { setActiveRoleTab('MARKET_MANAGER'); handleDemo('MARKET_MANAGER'); }}
+                    className={`flex items-center justify-center space-x-2 px-3.5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                      activeRoleTab === 'MARKET_MANAGER'
+                        ? 'bg-emerald-700 text-white ring-2 ring-emerald-400 shadow-md shadow-emerald-600/30'
+                        : 'bg-emerald-950/60 text-slate-300 border border-emerald-800/60 hover:bg-emerald-900/60'
+                    }`}
                   >
-                    <Store className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate">Market Manager (Karwan Bazar)</span>
+                    <Store className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Market Manager</span>
                   </button>
                   <button
-                    onClick={() => handleDemo('COLLECTOR')}
-                    className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100/90 text-sky-950 text-xs font-bold border border-sky-200 transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+                    type="button"
+                    onClick={() => { setActiveRoleTab('COLLECTOR'); handleDemo('COLLECTOR'); }}
+                    className={`flex items-center justify-center space-x-2 px-3.5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                      activeRoleTab === 'COLLECTOR'
+                        ? 'bg-emerald-700 text-white ring-2 ring-emerald-400 shadow-md shadow-emerald-600/30'
+                        : 'bg-emerald-950/60 text-slate-300 border border-emerald-800/60 hover:bg-emerald-900/60'
+                    }`}
                   >
-                    <Truck className="w-4 h-4 text-sky-600 shrink-0" />
-                    <span className="truncate">Waste Collector (Salam Miah)</span>
+                    <Truck className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Waste Collector</span>
                   </button>
                   <button
-                    onClick={() => handleDemo('ADMIN')}
-                    className="flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/90 text-purple-950 text-xs font-bold border border-purple-200 transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+                    type="button"
+                    onClick={() => { setActiveRoleTab('ADMIN'); handleDemo('ADMIN'); }}
+                    className={`flex items-center justify-center space-x-2 px-3.5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                      activeRoleTab === 'ADMIN'
+                        ? 'bg-emerald-700 text-white ring-2 ring-emerald-400 shadow-md shadow-emerald-600/30'
+                        : 'bg-emerald-950/60 text-slate-300 border border-emerald-800/60 hover:bg-emerald-900/60'
+                    }`}
                   >
-                    <ShieldCheck className="w-4 h-4 text-purple-600 shrink-0" />
+                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">Platform Admin</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Right: Authentic Photograph with Professional Glass Frame */}
+            {/* Right Column (Visual Live-Simulation Card) */}
             <div className="lg:col-span-5 relative">
-              {/* Ambient Glow */}
-              <div className="absolute -inset-2 bg-gradient-to-tr from-emerald-500/20 to-teal-400/20 rounded-3xl blur-xl opacity-70 -z-10"></div>
-              
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-900/10 bg-white">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-700/60 bg-slate-900 group">
                 <SafeImage
-                  src="/images/hero_market_bazar.jpg"
-                  alt="Vibrant Bangladesh wholesale vegetable bazar with vendors and produce baskets"
+                  src={ROLE_PREVIEWS[activeRoleTab].image}
+                  alt={`${ROLE_PREVIEWS[activeRoleTab].label} Live Simulation`}
                   loading="eager"
                   aspectRatio="aspect-[4/3]"
-                  className="w-full h-full object-cover transform hover:scale-102 transition-transform duration-500"
+                  className="w-full h-full object-cover transform group-hover:scale-102 transition-transform duration-500"
                 />
 
-                {/* Floating Top Badge */}
-                <div className="absolute top-3.5 left-3.5 backdrop-blur-md bg-slate-950/70 border border-white/20 text-white px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-md">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-xs font-bold tracking-tight">Karwan Bazar, Dhaka</span>
+                {/* Floating Top-Right Live Counter Badge */}
+                <div className="absolute top-4 right-4 backdrop-blur-md bg-slate-900/85 border border-white/20 text-white px-3.5 py-2 rounded-2xl shadow-xl">
+                  <div className="text-[10px] font-bold text-slate-300 tracking-wider uppercase">
+                    {ROLE_PREVIEWS[activeRoleTab].tickerLabel}
+                  </div>
+                  <div className="flex items-center space-x-1.5 font-bold text-xs sm:text-sm text-emerald-400 mt-0.5">
+                    <span className="text-emerald-400 animate-pulse">{ROLE_PREVIEWS[activeRoleTab].tickerDirection}</span>
+                    <span>{ROLE_PREVIEWS[activeRoleTab].tickerValue}</span>
+                  </div>
                 </div>
 
-                {/* Bottom Overlay with Professional Gradient */}
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-900/60 to-transparent p-4 sm:p-5 text-white">
-                  <div className="flex items-center space-x-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-300">
-                      Active Wholesale Hub Deployment
-                    </span>
+                {/* Floating Bottom-Left Geolocation Badge */}
+                <div className="absolute bottom-4 left-4 backdrop-blur-md bg-slate-900/85 border border-white/20 text-white px-3.5 py-2 rounded-2xl shadow-xl">
+                  <div className="text-[10px] text-slate-300 font-medium">Active Deployment:</div>
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    {ROLE_PREVIEWS[activeRoleTab].location}
                   </div>
-                  <p className="text-xs font-medium text-slate-200 mt-1 leading-snug">
-                    Ground-level waste categorization at Dhaka’s primary agricultural distribution terminal.
-                  </p>
                 </div>
               </div>
             </div>
@@ -521,21 +583,64 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. THE PROBLEM SECTION (Section 24) */}
-      <section className="py-16 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      {/* 5. THE PROBLEM SECTION (Interactive Diagnostic Layout) */}
+      <section className="py-20 bg-gradient-to-br from-[#F4FAF7] via-[#E8F5E9] to-[#E3F2E7] relative overflow-hidden border-t border-emerald-900/10">
+        {/* Subtle contour lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="contour-pattern-problem" width="180" height="180" patternUnits="userSpaceOnUse">
+              <path d="M0,45 Q45,0 90,45 T180,45 M0,90 Q45,135 90,90 T180,90 M0,135 Q45,90 90,135 T180,135" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#contour-pattern-problem)" />
+        </svg>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             
-            {/* Image from user uploads */}
-            <div className="lg:col-span-6 order-2 lg:order-1">
-              <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
-                <SafeImage
-                  src="/images/market_organic_waste.jpg"
-                  alt="Heaps of unsegregated organic vegetable market discards under market tarpaulins"
-                  aspectRatio="aspect-[4/3]"
-                  className="w-full h-full object-cover"
-                />
-                <div className="p-3 bg-white border-t border-slate-100">
+            {/* Left Column (Visual Diagnostic Annotation with Pulsating Hotspots) */}
+            <div className="lg:col-span-6">
+              <div className="rounded-3xl overflow-hidden shadow-xl border border-white/60 bg-white/70 backdrop-blur-md p-2">
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] bg-slate-100 group">
+                  <SafeImage
+                    src="/images/market_organic_waste.jpg"
+                    alt="Heaps of unsegregated organic vegetable market discards under market tarpaulins"
+                    aspectRatio="aspect-[4/3]"
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                  />
+
+                  {/* Hotspot Dot 1 (Organic greens) */}
+                  <div className="absolute top-[62%] left-[22%] z-20">
+                    <div 
+                      onClick={() => setActiveHotspot(activeHotspot === 1 ? null : 1)}
+                      className="relative flex items-center space-x-1.5 backdrop-blur-md bg-white/90 text-slate-900 border border-white/70 px-2.5 py-1 rounded-full text-xs font-bold shadow-md cursor-pointer hover:scale-105 transition-transform"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                      <span>70% Organic Waste</span>
+                    </div>
+                  </div>
+
+                  {/* Hotspot Dot 2 (Contaminated boxes/plastics) */}
+                  <div className="absolute top-[52%] right-[14%] z-20">
+                    <div 
+                      onClick={() => setActiveHotspot(activeHotspot === 2 ? null : 2)}
+                      className="relative flex items-center space-x-1.5 backdrop-blur-md bg-white/90 text-slate-900 border border-white/70 px-2.5 py-1 rounded-full text-xs font-bold shadow-md cursor-pointer hover:scale-105 transition-transform"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                      <span>Contaminated Recyclables</span>
+                    </div>
+                  </div>
+
+                  {/* Hotspot Dot 3 (Base gate area tag) */}
+                  <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto z-20">
+                    <div className="backdrop-blur-md bg-white/95 text-slate-900 border border-white/70 px-3 py-1.5 rounded-full text-xs font-bold shadow-md flex items-center space-x-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+                      <span>Dhaka Wholesale Market Gate (Real-Time)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-white/50 text-center">
                   <p className="text-xs text-slate-500 italic">
                     Unsegregated organic produce discards accumulation at local wholesale market sheds.
                   </p>
@@ -543,30 +648,97 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Problem Statement */}
-            <div className="lg:col-span-6 order-1 lg:order-2 space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
-                The Problem
-              </span>
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                Market Waste is Misunderstood as Mere Trash.
+            {/* Right Column (Problem Deconstruction with Interactive Glass Cards) */}
+            <div className="lg:col-span-6 space-y-5">
+              {/* Category Badge */}
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-300 text-xs font-bold uppercase tracking-wide shadow-xs">
+                <span>🚨</span>
+                <span>THE CRITICAL ISSUE</span>
+              </div>
+
+              {/* Main Heading */}
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                Market Waste is <span className="underline decoration-emerald-500 decoration-wavy underline-offset-4">Misunderstood</span> as <span className="underline decoration-emerald-500 decoration-wavy underline-offset-4">Mere Trash.</span>
               </h2>
-              <p className="text-base text-slate-700 leading-relaxed font-medium">
+
+              <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
                 Local markets generate organic and recyclable materials that can potentially be recovered instead of being treated only as waste.
               </p>
-              <div className="space-y-3 pt-2 text-sm text-slate-600">
-                <div className="flex items-start space-x-3">
-                  <div className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">✕</div>
-                  <p>Heaps of clean organic greens and fruit scraps are tossed into mixed open municipal bins.</p>
+
+              {/* Interactive Issue Cards */}
+              <div className="space-y-3 pt-1">
+                {/* Issue Card 1 */}
+                <div 
+                  onMouseEnter={() => setHoveredIssue(0)}
+                  className={`p-4 rounded-2xl bg-white/70 backdrop-blur-md border shadow-md transition-all flex items-start justify-between gap-3 ${
+                    hoveredIssue === 0 ? 'border-rose-300 bg-white/95 shadow-lg scale-[1.01]' : 'border-white/60 hover:border-rose-300'
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
+                      ✕
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">Unsorted Green Waste:</h4>
+                      <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                        Heaps of clean organic greens, fruit scraps to mixed open municipal bins.
+                      </p>
+                    </div>
+                  </div>
+                  {/* Wave micro indicator */}
+                  <div className="flex items-center space-x-0.5 text-emerald-600 bg-emerald-50 px-2 py-1.5 rounded-lg shrink-0" title="Audio acoustic monitor">
+                    <span className="w-0.5 h-2 bg-emerald-500 animate-pulse" />
+                    <span className="w-0.5 h-3.5 bg-emerald-600 animate-pulse delay-75" />
+                    <span className="w-0.5 h-2.5 bg-emerald-500 animate-pulse delay-150" />
+                  </div>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">✕</div>
-                  <p>Valuable transport cardboard and plastic crates are left unsorted, causing secondary contamination.</p>
+
+                {/* Issue Card 2 */}
+                <div 
+                  onMouseEnter={() => setHoveredIssue(1)}
+                  className={`p-4 rounded-2xl bg-white/70 backdrop-blur-md border shadow-md transition-all flex items-start space-x-3 ${
+                    hoveredIssue === 1 ? 'border-rose-300 bg-white/95 shadow-lg scale-[1.01]' : 'border-white/60 hover:border-rose-300'
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
+                    ✕
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Contamination Hazard:</h4>
+                    <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                      Valuable transport and plastic crates are left unsorted, causing secondary contamination.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">✕</div>
-                  <p>Informal collectors lack a real-time digital notification when clean, bulk batches are available at specific market gates.</p>
+
+                {/* Issue Card 3 */}
+                <div 
+                  onMouseEnter={() => setHoveredIssue(2)}
+                  className={`p-4 rounded-2xl bg-white/70 backdrop-blur-md border shadow-md transition-all flex items-start space-x-3 ${
+                    hoveredIssue === 2 ? 'border-rose-300 bg-white/95 shadow-lg scale-[1.01]' : 'border-white/60 hover:border-rose-300'
+                  }`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
+                    ✕
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Digital Disconnection:</h4>
+                    <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                      Informal collectors lack real-time digital notification, are available at specific market gates.
+                    </p>
+                  </div>
                 </div>
+              </div>
+
+              {/* Action Link */}
+              <div className="pt-2 flex justify-end">
+                <a
+                  href="#pathways"
+                  className="px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold transition-all shadow-md flex items-center space-x-2 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <span>How we solve this</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
               </div>
             </div>
 
@@ -574,133 +746,244 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. RESOURCE PATHWAY VISUALS (Section 25) */}
-      <section className="py-16 bg-white border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 6. RESOURCE PATHWAY VISUALS (Deterministic Resource Pathways) */}
+      <section className="py-20 bg-gradient-to-br from-[#F4FAF7] via-[#E8F5E9] to-[#E3F2E7] relative overflow-hidden border-t border-emerald-900/10" id="pathways">
+        {/* Subtle contour lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="contour-pattern-pathways" width="180" height="180" patternUnits="userSpaceOnUse">
+              <path d="M0,45 Q45,0 90,45 T180,45 M0,90 Q45,135 90,90 T180,90 M0,135 Q45,90 90,135 T180,135" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#contour-pattern-pathways)" />
+        </svg>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">Rule-Based Recovery</span>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-100/90 border border-emerald-300 text-emerald-800 text-xs font-bold tracking-widest uppercase mb-3 shadow-xs">
+              <span>RULE-BASED RECOVERY</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               Deterministic Resource Pathways
             </h2>
-            <p className="text-sm text-slate-600 mt-2">
+            <p className="text-sm sm:text-base text-slate-600 mt-2 max-w-2xl mx-auto leading-relaxed">
               Every logged waste category is automatically evaluated through transparent, explainable transformation pathways with estimated BDT valuation.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* 4-Column Interactive Resource Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             
             {/* Card 1: Vegetable/Fruit Waste */}
-            <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 hover:shadow-md transition">
-              <SafeImage
-                src="/images/composting_organic.jpg"
-                alt="Organic vegetable discards in hands for composting"
-                aspectRatio="aspect-[4/3]"
-              />
-              <div className="p-4 space-y-2">
-                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                  Organic Pathway
-                </span>
-                <h3 className="font-bold text-base text-slate-900">Vegetable / Fruit Waste</h3>
-                <div className="flex items-center text-xs font-bold text-emerald-700 space-x-1">
-                  <span>Vegetable Waste</span>
-                  <span>↓</span>
-                  <span>Composting</span>
+            <div 
+              onMouseEnter={() => setActivePathway(0)}
+              className={`rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between ${
+                activePathway === 0
+                  ? 'bg-white/95 border-emerald-400 ring-2 ring-emerald-500 shadow-xl shadow-emerald-500/10 scale-[1.02]'
+                  : 'bg-white/70 backdrop-blur-md border-white/60 hover:border-slate-300 shadow-md'
+              }`}
+            >
+              <div className="p-2.5">
+                <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 group">
+                  <SafeImage
+                    src="/images/composting_organic.jpg"
+                    alt="Organic vegetable discards in hands for composting"
+                    aspectRatio="aspect-[4/3]"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] font-bold shadow-xs">
+                    ● Live
+                  </div>
                 </div>
-                <p className="text-xs text-slate-600 leading-normal">
-                  Diverted directly to decentralized bio-composting pits to produce agricultural soil enrichment.
-                </p>
-                <div className="pt-2 border-t border-slate-200 text-xs font-semibold text-slate-700 flex justify-between">
+              </div>
+
+              <div className="p-4 pt-2 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 inline-block">
+                    ORGANIC PATHWAY
+                  </span>
+                  <h3 className="font-bold text-base text-slate-900 mt-1.5">Vegetable / Fruit Waste</h3>
+                  <div className="flex items-center text-xs font-bold text-emerald-700 space-x-1">
+                    <span>Vegetable Waste</span>
+                    <span>→</span>
+                    <span>Composting</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-normal mt-1.5">
+                    Diverted directly to decentralized bio-composting pits to produce agricultural soil enrichment.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700 flex items-center justify-between">
                   <span>Est. Value:</span>
-                  <span className="text-emerald-700 font-bold">12–15 BDT / KG</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">12–15 BDT / KG</span>
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Card 2: Plastic Waste */}
-            <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 hover:shadow-md transition">
-              <SafeImage
-                src="/images/plastic_recycling_cage.jpg"
-                alt="Plastic bottles wire recycling collection cage"
-                aspectRatio="aspect-[4/3]"
-              />
-              <div className="p-4 space-y-2">
-                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-800">
-                  Recyclable Pathway
-                </span>
-                <h3 className="font-bold text-base text-slate-900">Plastic Packaging & PET</h3>
-                <div className="flex items-center text-xs font-bold text-sky-700 space-x-1">
-                  <span>Plastic</span>
-                  <span>↓</span>
-                  <span>Recycling</span>
+            {/* Card 2: Plastic Packaging & PET */}
+            <div 
+              onMouseEnter={() => setActivePathway(1)}
+              className={`rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between ${
+                activePathway === 1
+                  ? 'bg-white/95 border-emerald-400 ring-2 ring-emerald-500 shadow-xl shadow-emerald-500/10 scale-[1.02]'
+                  : 'bg-white/70 backdrop-blur-md border-white/60 hover:border-slate-300 shadow-md'
+              }`}
+            >
+              <div className="p-2.5">
+                <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 group">
+                  <SafeImage
+                    src="/images/plastic_recycling_cage.jpg"
+                    alt="Plastic bottles wire recycling collection cage"
+                    aspectRatio="aspect-[4/3]"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <p className="text-xs text-slate-600 leading-normal">
-                  Baled, washed, and routed to local mechanical plastic granulators and pelletizers.
-                </p>
-                <div className="pt-2 border-t border-slate-200 text-xs font-semibold text-slate-700 flex justify-between">
+              </div>
+
+              <div className="p-4 pt-2 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200 inline-block">
+                    RECYCLABLE PATHWAY
+                  </span>
+                  <h3 className="font-bold text-base text-slate-900 mt-1.5">Plastic Packaging & PET</h3>
+                  <div className="flex items-center text-xs font-bold text-sky-700 space-x-1">
+                    <span>Plastic</span>
+                    <span>→</span>
+                    <span>Recycling</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-normal mt-1.5">
+                    Baled, washed, and routed to local mechanical plastic granulators and pelletizers.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700 flex items-center justify-between">
                   <span>Est. Value:</span>
-                  <span className="text-sky-700 font-bold">35 BDT / KG</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-sky-700 font-bold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">35 BDT / KG</span>
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Card 3: Paper / Cardboard */}
-            <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 hover:shadow-md transition">
-              <SafeImage
-                src="/images/hero_market_bazar.jpg"
-                alt="Market packaging paper cartons stacked for recycling"
-                aspectRatio="aspect-[4/3]"
-              />
-              <div className="p-4 space-y-2">
-                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                  Fiber Pathway
-                </span>
-                <h3 className="font-bold text-base text-slate-900">Paper & Cardboard</h3>
-                <div className="flex items-center text-xs font-bold text-purple-700 space-x-1">
-                  <span>Paper/Cardboard</span>
-                  <span>↓</span>
-                  <span>Paper Recycling</span>
+            {/* Card 3: Paper & Cardboard (Default Active / Highlighted Card as in Screenshot!) */}
+            <div 
+              onMouseEnter={() => setActivePathway(2)}
+              className={`rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between ${
+                activePathway === 2
+                  ? 'bg-white/95 border-emerald-400 ring-2 ring-emerald-500 shadow-xl shadow-emerald-500/10 scale-[1.02]'
+                  : 'bg-white/70 backdrop-blur-md border-white/60 hover:border-slate-300 shadow-md'
+              }`}
+            >
+              <div className="p-2.5">
+                <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 group">
+                  <SafeImage
+                    src="/images/hero_market_bazar.jpg"
+                    alt="Market packaging paper cartons stacked for recycling"
+                    aspectRatio="aspect-[4/3]"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-bold shadow-xs">
+                    ● Active Pathway
+                  </div>
                 </div>
-                <p className="text-xs text-slate-600 leading-normal">
-                  Bundled corrugated transport boxes redirected to regional cardboard and kraft pulp mills.
-                </p>
-                <div className="pt-2 border-t border-slate-200 text-xs font-semibold text-slate-700 flex justify-between">
+              </div>
+
+              <div className="p-4 pt-2 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 inline-block">
+                    FIBER PATHWAY
+                  </span>
+                  <h3 className="font-bold text-base text-slate-900 mt-1.5">Paper & Cardboard</h3>
+                  <div className="flex items-center text-xs font-bold text-purple-700 space-x-1">
+                    <span>Paper/Cardboard</span>
+                    <span>→</span>
+                    <span>Paper Recycling</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-normal mt-1.5">
+                    Bundled corrugated transport boxes redirected to regional cardboard and kraft pulp mills.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700 flex items-center justify-between">
                   <span>Est. Value:</span>
-                  <span className="text-purple-700 font-bold">18 BDT / KG</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-200">18 BDT / KG</span>
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Card 4: Organic / Fish Waste */}
-            <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 hover:shadow-md transition">
-              <SafeImage
-                src="/images/market_produce_vendor.jpg"
-                alt="Bangladeshi produce market vendor and fresh provisions"
-                aspectRatio="aspect-[4/3]"
-              />
-              <div className="p-4 space-y-2">
-                <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                  Nutrient Pathway
-                </span>
-                <h3 className="font-bold text-base text-slate-900">Fish & High-Protein Waste</h3>
-                <div className="flex items-center text-xs font-bold text-amber-700 space-x-1">
-                  <span>Fish Waste</span>
-                  <span>↓</span>
-                  <span>Organic Recovery</span>
+            {/* Card 4: Fish & High-Protein Waste */}
+            <div 
+              onMouseEnter={() => setActivePathway(3)}
+              className={`rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between ${
+                activePathway === 3
+                  ? 'bg-white/95 border-emerald-400 ring-2 ring-emerald-500 shadow-xl shadow-emerald-500/10 scale-[1.02]'
+                  : 'bg-white/70 backdrop-blur-md border-white/60 hover:border-slate-300 shadow-md'
+              }`}
+            >
+              <div className="p-2.5">
+                <div className="relative rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 group">
+                  <SafeImage
+                    src="/images/market_produce_vendor.jpg"
+                    alt="Bangladeshi produce market vendor and fresh provisions"
+                    aspectRatio="aspect-[4/3]"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <p className="text-xs text-slate-600 leading-normal">
-                  Chilled fish trimmings converted into nitrogen-rich bio-fertilizer and poultry feed additives.
-                </p>
-                <div className="pt-2 border-t border-slate-200 text-xs font-semibold text-slate-700 flex justify-between">
+              </div>
+
+              <div className="p-4 pt-2 space-y-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 inline-block">
+                    NUTRIENT PATHWAY
+                  </span>
+                  <h3 className="font-bold text-base text-slate-900 mt-1.5">Fish & High-Protein Waste</h3>
+                  <div className="flex items-center text-xs font-bold text-amber-700 space-x-1">
+                    <span>Fish Waste</span>
+                    <span>→</span>
+                    <span>Organic Recovery</span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-normal mt-1.5">
+                    Chilled fish trimmings converted into nitrogen-rich bio fertilizer and poultry feed additives.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700 flex items-center justify-between">
                   <span>Est. Value:</span>
-                  <span className="text-amber-700 font-bold">25 BDT / KG</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">25 BDT / KG</span>
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
                 </div>
               </div>
             </div>
 
           </div>
 
-          <div className="mt-8 text-center">
-            <p className="text-xs text-slate-500 italic max-w-xl mx-auto">
+          {/* Bottom Indicators: Pagination, instruction notice & disclaimer */}
+          <div className="mt-10 text-center space-y-3">
+            {/* Pagination dots */}
+            <div className="flex items-center justify-center space-x-1.5">
+              <span className={`h-1.5 rounded-full transition-all duration-300 ${activePathway === 0 ? 'w-5 bg-emerald-600' : 'w-1.5 bg-emerald-300'}`} />
+              <span className={`h-1.5 rounded-full transition-all duration-300 ${activePathway === 1 ? 'w-5 bg-emerald-600' : 'w-1.5 bg-emerald-300'}`} />
+              <span className={`h-1.5 rounded-full transition-all duration-300 ${activePathway === 2 ? 'w-5 bg-emerald-600' : 'w-1.5 bg-emerald-300'}`} />
+              <span className={`h-1.5 rounded-full transition-all duration-300 ${activePathway === 3 ? 'w-5 bg-emerald-600' : 'w-1.5 bg-emerald-300'}`} />
+            </div>
+
+            {/* Instruction Notice */}
+            <div className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-700 bg-white/80 border border-slate-200/80 px-3.5 py-1.5 rounded-full shadow-xs">
+              <MousePointer className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Hover on a pathway to see how it works</span>
+            </div>
+
+            <p className="text-xs text-slate-500 italic max-w-xl mx-auto pt-1">
               Values are project estimates for demonstration purposes and may vary by location, quality, and market conditions.
             </p>
           </div>
