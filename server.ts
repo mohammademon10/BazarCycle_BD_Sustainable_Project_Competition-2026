@@ -685,6 +685,12 @@ if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://
       ssl: { rejectUnauthorized: false },
       connectionTimeoutMillis: 5000,
     });
+    pool.on('error', (err: any) => {
+      console.warn('[PostgreSQL Pool Background Event]', err.message);
+    });
+    if (dbUrl.includes('.supabase.co') && !dbUrl.includes('.pooler.supabase.com')) {
+      console.info('[Notice] Direct Supabase host (db.***.supabase.co) detected. If running on Render free tier (IPv4 only), use Supabase Connection Pooler URI (aws-0-***.pooler.supabase.com:6543) to avoid IPv6 ENETUNREACH.');
+    }
     console.log('PostgreSQL database pool configured for Supabase.');
   } catch (err: any) {
     console.warn('PostgreSQL pool initialization failed:', err.message);
@@ -736,8 +742,9 @@ async function tryDbQuery(sql: string, params: any[] = []): Promise<any> {
 
 async function initDbSync() {
   if (!pool) return;
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     console.log('Synchronizing with Supabase PostgreSQL...');
 
     // Categories
@@ -853,10 +860,17 @@ async function initDbSync() {
       }));
     }
 
-    client.release();
     console.log('Supabase sync complete.');
   } catch (err: any) {
     console.warn('Supabase sync notice (using memory store):', err.message);
+  } finally {
+    if (client) {
+      try {
+        client.release();
+      } catch (_e) {
+        // ignore release errors
+      }
+    }
   }
 }
 
