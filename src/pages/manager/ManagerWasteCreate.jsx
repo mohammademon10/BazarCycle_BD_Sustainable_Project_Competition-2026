@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 export default function ManagerWasteCreate() {
   const { user } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
 
   const [markets, setMarkets] = useState([]);
@@ -141,13 +143,17 @@ export default function ManagerWasteCreate() {
         });
       }
 
-      setSuccess('Waste batch registered and pickup request created successfully!');
+      const msg = 'Waste batch registered and pickup request created successfully!';
+      setSuccess(msg);
+      toast.success(msg);
       setTimeout(() => {
         navigate('/manager/waste');
-      }, 1200);
+      }, 1000);
     } catch (err) {
       const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to register waste record.';
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      const cleanMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      setError(cleanMsg);
+      toast.error(cleanMsg);
     } finally {
       setSubmitting(false);
     }

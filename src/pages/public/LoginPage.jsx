@@ -15,9 +15,12 @@ import {
   Phone
 } from 'lucide-react';
 import { useAuth, DEMO_CREDENTIALS } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function LoginPage() {
-  const { login, register, quickDemoLogin, isAuthenticated, user } = useAuth();
+  const { login, register, googleLogin, quickDemoLogin, isAuthenticated, user } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -46,6 +49,12 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, user, navigate]);
 
+  // Keep state synced if query param changes
+  useEffect(() => {
+    const mode = new URLSearchParams(location.search).get('mode');
+    setIsRegisterMode(mode === 'register');
+  }, [location.search]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -60,18 +69,41 @@ export default function LoginPage() {
           role: role.toUpperCase(),
           password,
         });
+        toast.success(`Welcome to BazarCycle, ${newUser.name || 'Partner'}!`);
         if (newUser.role === 'ADMIN') navigate('/admin/dashboard');
         else if (newUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
         else navigate('/collector/dashboard');
       } else {
         const loggedUser = await login(email.trim().toLowerCase(), password);
+        toast.success(`Signed in successfully as ${loggedUser.name || 'User'}`);
         if (loggedUser.role === 'ADMIN') navigate('/admin/dashboard');
         else if (loggedUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
         else navigate('/collector/dashboard');
       }
     } catch (err) {
       const msg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Authentication failed. Please check your credentials.';
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      const cleanMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      setError(cleanMsg);
+      toast.error(cleanMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credential) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const loggedUser = await googleLogin(credential, role);
+      toast.success(`Signed in with Google as ${loggedUser.name}!`);
+      if (loggedUser.role === 'ADMIN') navigate('/admin/dashboard');
+      else if (loggedUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
+      else navigate('/collector/dashboard');
+    } catch (err) {
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Google sign-in failed. Please try again.';
+      const cleanMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      setError(cleanMsg);
+      toast.error(cleanMsg);
     } finally {
       setLoading(false);
     }
@@ -82,22 +114,25 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const loggedUser = await quickDemoLogin(roleKey);
+      toast.success(`Switched to demo role: ${roleKey}`);
       if (loggedUser.role === 'ADMIN') navigate('/admin/dashboard');
       else if (loggedUser.role === 'MARKET_MANAGER') navigate('/manager/dashboard');
       else if (loggedUser.role === 'COLLECTOR') navigate('/collector/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to log in with demo account. Ensure backend is running.';
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to log in with demo account.';
+      const cleanMsg = typeof msg === 'string' ? msg : JSON.stringify(msg);
+      setError(cleanMsg);
+      toast.error(cleanMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="flex items-center justify-center space-x-2.5">
-          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30">
+        <Link to="/" className="flex items-center justify-center space-x-2.5 group">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-forest-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 group-hover:scale-105 transition-transform">
             <Recycle className="w-7 h-7" />
           </div>
           <div className="flex flex-col">
@@ -109,24 +144,24 @@ export default function LoginPage() {
             </span>
           </div>
         </Link>
-        <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-slate-900">
+        <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
           {isRegisterMode ? 'Create New Account' : 'Sign In to Your Workspace'}
         </h2>
-        <p className="mt-1 text-center text-xs text-slate-500">
+        <p className="mt-1 text-center text-xs sm:text-sm text-slate-600">
           Secure Role-Based Access for Markets, Collectors & Administrators
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        {/* Quick Demo Credentials Panel */}
-        <div className="mb-6 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {/* 1-Click Competition Demo Logins */}
+        <div className="mb-6 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center space-x-2 mb-2">
             <Sparkles className="w-4 h-4 text-amber-600" />
-            <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-amber-950 uppercase tracking-wider">
               1-Click Competition Demo Logins
             </h3>
           </div>
-          <p className="text-[11px] text-amber-800 mb-3">
+          <p className="text-[11px] text-amber-900/80 mb-3">
             Select a role to instantly test live features with pre-seeded data:
           </p>
 
@@ -135,7 +170,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemo('MARKET_MANAGER')}
               disabled={loading}
-              className="w-full flex items-center justify-between px-3 py-2 bg-white rounded-xl border border-amber-200 hover:border-emerald-500 hover:bg-emerald-50/50 text-slate-800 transition text-xs font-semibold shadow-sm"
+              className="w-full flex items-center justify-between px-3 py-2.5 bg-white rounded-xl border border-amber-200/90 hover:border-emerald-500 hover:bg-emerald-50/50 text-slate-800 transition-all text-xs font-semibold shadow-xs cursor-pointer"
             >
               <div className="flex items-center space-x-2.5">
                 <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
@@ -153,7 +188,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemo('COLLECTOR')}
               disabled={loading}
-              className="w-full flex items-center justify-between px-3 py-2 bg-white rounded-xl border border-amber-200 hover:border-sky-500 hover:bg-sky-50/50 text-slate-800 transition text-xs font-semibold shadow-sm"
+              className="w-full flex items-center justify-between px-3 py-2.5 bg-white rounded-xl border border-amber-200/90 hover:border-sky-500 hover:bg-sky-50/50 text-slate-800 transition-all text-xs font-semibold shadow-xs cursor-pointer"
             >
               <div className="flex items-center space-x-2.5">
                 <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 flex items-center justify-center">
@@ -171,7 +206,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => handleQuickDemo('ADMIN')}
               disabled={loading}
-              className="w-full flex items-center justify-between px-3 py-2 bg-white rounded-xl border border-amber-200 hover:border-purple-500 hover:bg-purple-50/50 text-slate-800 transition text-xs font-semibold shadow-sm"
+              className="w-full flex items-center justify-between px-3 py-2.5 bg-white rounded-xl border border-amber-200/90 hover:border-purple-500 hover:bg-purple-50/50 text-slate-800 transition-all text-xs font-semibold shadow-xs cursor-pointer"
             >
               <div className="flex items-center space-x-2.5">
                 <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center">
@@ -187,10 +222,75 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Regular Login / Register Form */}
+        {/* Regular Login / Register Form Card */}
         <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-slate-200 sm:px-8">
+          
+          {/* Google Sign-In as Primary Prominent Action */}
+          <div className="mb-6">
+            <div className="mb-2 text-center">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Fastest One-Click Access
+              </span>
+            </div>
+            
+            {isRegisterMode && (
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Assign My Account Role:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRole('MARKET_MANAGER')}
+                    className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all text-left flex items-center gap-1.5 ${
+                      role === 'MARKET_MANAGER'
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Store className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Market Manager</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('COLLECTOR')}
+                    className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all text-left flex items-center gap-1.5 ${
+                      role === 'COLLECTOR'
+                        ? 'border-sky-500 bg-sky-50 text-sky-900 ring-2 ring-sky-500/20'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Waste Collector</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={(err) => {
+                setError(err.message);
+                toast.error(err.message);
+              }}
+              disabled={loading}
+              text={isRegisterMode ? 'signup_with' : 'signin_with'}
+            />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 font-semibold text-slate-400 uppercase tracking-wider">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+          </div>
+
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-start space-x-2 text-rose-700 text-xs">
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-start space-x-2 text-rose-700 text-xs animate-slide-down">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -201,7 +301,7 @@ export default function LoginPage() {
               <>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700">Full Name</label>
-                  <div className="mt-1 relative rounded-lg shadow-sm">
+                  <div className="mt-1 relative rounded-lg shadow-xs">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                       <User className="w-4 h-4" />
                     </div>
@@ -211,33 +311,33 @@ export default function LoginPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. Rafiqul Alam"
-                      className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                      className="block w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700">Phone Number (Optional)</label>
-                  <div className="mt-1 relative rounded-lg shadow-sm">
+                  <div className="mt-1 relative rounded-lg shadow-xs">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                       <Phone className="w-4 h-4" />
                     </div>
                     <input
-                      type="text"
+                      type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+88017..."
-                      className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="+880 1712 345678"
+                      className="block w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Role</label>
+                  <label className="block text-xs font-semibold text-slate-700">Account Role</label>
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="mt-1 block w-full py-2 px-3 text-sm border border-slate-300 bg-white rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                    className="mt-1 block w-full py-2.5 px-3 text-sm border border-slate-300 bg-white rounded-xl focus:ring-emerald-500 focus:border-emerald-500 font-medium"
                   >
                     <option value="MARKET_MANAGER">Market Manager (Manage Bazar & Log Waste)</option>
                     <option value="COLLECTOR">Waste Collector (Transport & Recover)</option>
@@ -249,7 +349,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700">Email Address</label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="mt-1 relative rounded-lg shadow-xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <Mail className="w-4 h-4" />
                 </div>
@@ -259,14 +359,14 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="user@bazarcycle.bd"
-                  className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                  className="block w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700">Password</label>
-              <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="mt-1 relative rounded-lg shadow-xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
@@ -276,7 +376,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                  className="block w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
             </div>
@@ -284,7 +384,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition"
+              className="btn-primary w-full mt-3 flex items-center justify-center py-3 px-4 rounded-xl shadow-md text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition cursor-pointer"
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
@@ -299,14 +399,14 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-5 text-center text-xs text-slate-500">
+          <div className="mt-6 text-center text-xs text-slate-600">
             {isRegisterMode ? (
               <p>
                 Already have an account?{' '}
                 <button
                   type="button"
                   onClick={() => setIsRegisterMode(false)}
-                  className="font-bold text-emerald-600 hover:text-emerald-700"
+                  className="font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
                 >
                   Sign in
                 </button>
@@ -317,7 +417,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setIsRegisterMode(true)}
-                  className="font-bold text-emerald-600 hover:text-emerald-700"
+                  className="font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
                 >
                   Register here
                 </button>

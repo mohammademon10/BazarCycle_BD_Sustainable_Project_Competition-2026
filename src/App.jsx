@@ -1,8 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import MobileBottomNav from './components/MobileBottomNav';
 import ProtectedRoute from './components/ProtectedRoute';
 import PageTransition from './components/PageTransition';
 import ServerWakeBanner from './components/ServerWakeBanner';
@@ -40,12 +42,13 @@ import CollectorHistory from './pages/collector/CollectorHistory';
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ServerWakeBanner />
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
+      <ToastProvider>
+        <Router>
+          <ServerWakeBanner />
+          <div className="flex flex-col min-h-screen pb-14 md:pb-0">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
               <Route path="/about" element={<PageTransition><AboutPage /></PageTransition>} />
@@ -200,8 +203,10 @@ export default function App() {
             </Routes>
           </main>
           <Footer />
+          <MobileBottomNav />
         </div>
       </Router>
-    </AuthProvider>
+    </ToastProvider>
+  </AuthProvider>
   );
 }

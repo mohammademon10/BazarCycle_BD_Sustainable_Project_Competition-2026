@@ -54,6 +54,18 @@ export const AuthProvider = ({ children }) => {
     return newUser;
   };
 
+  const googleLogin = async (credential, selectedRole = 'MARKET_MANAGER') => {
+    const response = await api.post('/auth/google', { credential, selected_role: selectedRole });
+    const { access_token, user: userData } = response.data;
+
+    localStorage.setItem('bazarcycle_token', access_token);
+    localStorage.setItem('bazarcycle_user', JSON.stringify(userData));
+
+    setToken(access_token);
+    setUser(userData);
+    return userData;
+  };
+
   const logout = () => {
     localStorage.removeItem('bazarcycle_token');
     localStorage.removeItem('bazarcycle_user');
@@ -75,6 +87,7 @@ export const AuthProvider = ({ children }) => {
     role: user?.role,
     login,
     register,
+    googleLogin,
     logout,
     quickDemoLogin,
   };

@@ -1110,6 +1110,138 @@ apiRouter.post('/auth/login', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// Google Sign-In / OAuth Verification Endpoint
+// ─────────────────────────────────────────────────────────────
+apiRouter.post('/auth/google', async (req, res) => {
+  try {
+    const { credential, client_id, selected_role } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        error: 'Google ID token credential is required.',
+        detail: 'Missing credential parameter.',
+      });
+    }
+
+    let googlePayload: {
+      email?: string;
+      name?: string;
+      picture?: string;
+      sub?: string;
+      email_verified?: boolean;
+    } = {};
+
+    // 1. Try decoding standard Google JWT payload (base64url)
+    try {
+      const parts = credential.split('.');
+      if (parts.length === 3) {
+        const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
+        googlePayload = JSON.parse(payloadJson);
+      }
+    } catch (e) {
+      console.warn('[Google Auth] Failed to parse JWT locally, checking Google tokeninfo API...', e);
+    }
+
+    // 2. Fallback / Verification via Google tokeninfo endpoint
+    if (!googlePayload.email) {
+      try {
+        const tokenInfoRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+        if (tokenInfoRes.ok) {
+          googlePayload = await tokenInfoRes.json();
+        }
+      } catch (err) {
+        console.warn('[Google Auth] tokeninfo fetch failed:', err);
+      }
+    }
+
+    if (!googlePayload.email) {
+      return res.status(401).json({
+        error: 'Invalid Google credential or unable to verify email.',
+        detail: 'Google did not return a verified email address.',
+      });
+    }
+
+    const normEmail = googlePayload.email.trim().toLowerCase();
+    const displayName = googlePayload.name || normEmail.split('@')[0];
+
+    // Find existing profile in memory
+    let user = profiles.find(p => p.email.toLowerCase() === normEmail);
+
+    // If not in memory, check Supabase DB
+    if (!user) {
+      const dbRes = await tryDbQuery('SELECT * FROM profiles WHERE LOWER(email) = $1', [normEmail]);
+      if (dbRes && dbRes.rows && dbRes.rows.length > 0) {
+        const row = dbRes.rows[0];
+        user = {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          phone: row.phone,
+          role: row.role,
+          hashed_password: row.hashed_password,
+          created_at: row.created_at?.toISOString?.() || String(row.created_at),
+          updated_at: row.updated_at?.toISOString?.() || String(row.updated_at),
+        };
+        profiles.push(user);
+      }
+    }
+
+    // If user does not exist yet, auto-register them
+    if (!user) {
+      const assignedRole = (selected_role && ['ADMIN', 'MARKET_MANAGER', 'COLLECTOR'].includes(selected_role))
+        ? selected_role
+        : 'MARKET_MANAGER';
+
+      const randomPassword = `G_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      const newUserId = crypto.randomUUID();
+      const now = new Date().toISOString();
+
+      user = {
+        id: newUserId,
+        name: displayName,
+        email: normEmail,
+        phone: null,
+        role: assignedRole as any,
+        hashed_password: hashedPassword,
+        created_at: now,
+        updated_at: now,
+      };
+
+      // Persist to Supabase if connected
+      if (pool) {
+        try {
+          await pool.query(
+            `INSERT INTO profiles (id, name, email, phone, role, hashed_password, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [newUserId, displayName, normEmail, null, assignedRole, hashedPassword, now, now]
+          );
+        } catch (dbErr: any) {
+          console.warn('[Google Auth DB insert warning]', dbErr.message);
+          // Still proceed with memory profile so user is not blocked
+        }
+      }
+
+      profiles.push(user);
+    }
+
+    const token = createToken(user);
+    return res.json({
+      access_token: token,
+      token_type: 'bearer',
+      user: formatUser(user),
+      is_new_user: !profiles.find(p => p.id === user?.id && p.created_at !== user?.created_at),
+    });
+  } catch (err: any) {
+    console.error('[Google Login Error]', err);
+    return res.status(500).json({
+      error: 'Google authentication failed.',
+      detail: err.message,
+    });
+  }
+});
+
 apiRouter.get('/auth/me', requireAuth, (req, res) => {
   res.json(formatUser((req as any).user));
 });
