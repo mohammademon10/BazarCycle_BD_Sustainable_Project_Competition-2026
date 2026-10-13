@@ -30,12 +30,19 @@ BazarCycle BD is designed for native compatibility with Supabase PostgreSQL.
 ## Step 3: Configure Backend Connection String
 1. Go to **Project Settings** -> **Database**.
 2. Under **Connection string**, select **URI**.
-3. Copy the URI and replace `[YOUR-PASSWORD]` with your actual database password.
-4. Place it in `backend/.env`:
-   ```env
-   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
-   ```
-5. Note: If using transaction pooler on port 6543, ensure SSL mode is enabled (default in SQLAlchemy).
+3. **Important for Render (IPv4 Compatibility):**
+   - Render free tier instances use **IPv4**.
+   - Direct connection (`db.[PROJECT-REF].supabase.co:5432`) resolves to **IPv6**, which causes `connect ENETUNREACH` on Render.
+   - **Solution:** In the Supabase Database settings, select the **Connection Pooler** tab (Mode: **Session**, port `5432` or **Transaction**, port `6543`).
+   - Copy the Pooler URI:
+     ```env
+     DATABASE_URL=postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres
+     ```
+   - (Alternatively, if using the direct host on a network that supports IPv6):
+     ```env
+     DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+     ```
+4. Note: If `DATABASE_URL` is omitted or temporarily unreachable, BazarCycle BD automatically falls back to its robust in-memory database with pre-seeded demonstration data, ensuring zero downtime!
 
 ---
 

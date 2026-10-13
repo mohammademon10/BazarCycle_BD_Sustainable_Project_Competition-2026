@@ -864,7 +864,8 @@ For production deployment with Supabase:
 1. Create a project at [supabase.com](https://supabase.com).
 2. Navigate to the **SQL Editor** in the Supabase Dashboard.
 3. Open `database/schema.sql` from this repository, copy its entire contents, and execute it to create all tables, indexes, and constraints.
-4. Copy the connection URI from **Settings -> Database** and assign it to `DATABASE_URL` in your backend host environment.
+4. Copy the connection URI from **Settings -> Database** and assign it to `DATABASE_URL` in your backend host environment.  
+   *(Tip for Render: Select the **Connection Pooler** URI with port `5432` or `6543` since Render free tier connects via IPv4; direct connection to `db.[ref].supabase.co` uses IPv6).*
 
 ---
 
