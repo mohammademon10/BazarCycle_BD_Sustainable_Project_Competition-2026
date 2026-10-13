@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import PageTransition from './components/PageTransition';
+import ServerWakeBanner from './components/ServerWakeBanner';
 
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
+        <ServerWakeBanner />
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main className="flex-grow">

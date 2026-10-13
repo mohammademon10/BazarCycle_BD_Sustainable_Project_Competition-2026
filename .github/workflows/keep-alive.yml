@@ -1,0 +1,23 @@
+name: Keep Render Service Awake
+
+on:
+  schedule:
+    # Runs every 12 minutes (Render sleeps after 15 minutes of inactivity)
+    - cron: '*/12 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  ping-render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ping BazarCycle Health Endpoint
+        run: |
+          node scripts/ping-keepalive.js ${{ secrets.RENDER_APP_URL || 'https://bazarcycle-bd.onrender.com' }}

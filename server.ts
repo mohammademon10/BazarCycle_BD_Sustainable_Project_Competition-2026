@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import path from 'path';
@@ -308,8 +309,9 @@ function calculateMarketScore(marketId: string) {
 // Populate Seed Data
 // ==========================================
 function seedDatabase() {
-  const salt = bcrypt.genSaltSync(10);
-  const defaultHash = bcrypt.hashSync('BazarCycle2026!', salt);
+  // Pre-computed bcrypt hash for 'BazarCycle2026!' (cost factor 10)
+  // Eliminates synchronous CPU-blocking bcrypt hashing during container boot on Render
+  const defaultHash = '$2b$10$rYkycDBm/vKDkuDomHIiEum3h/g83.O7w5GSrFemHkU2nwoV/1G9O';
 
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
@@ -862,8 +864,26 @@ async function initDbSync() {
 // Express App & Middleware
 // ==========================================
 const app = express();
+
+// ==========================================
+// 1. Ultra-Lightweight Health Endpoint
+// Defined FIRST before any middleware or authentication.
+// Responds in <1ms without touching database or running auth logic.
+// Used by Render health-check, external uptime monitors, and frontend wake detector.
+// ==========================================
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    service: 'BazarCycle BD API',
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Enable Gzip/Brotli compression for all HTTP responses and static bundles
+app.use(compression());
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Auth token helpers
 function createToken(profile: Profile): string {
@@ -920,13 +940,6 @@ function requireRole(roles: string[]) {
 }
 
 app.use(authMiddleware);
-
-// ==========================================
-// Health & Root Status
-// ==========================================
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', service: 'BazarCycle BD API' });
-});
 
 // ==========================================
 // API Router
@@ -2017,10 +2030,22 @@ async function start() {
     const distPath = path.resolve(__dirname, 'dist');
     const indexPath = path.resolve(distPath, 'index.html');
     if (fs.existsSync(distPath)) {
-      app.use(express.static(distPath));
+      // 1-year immutable cache for content-hashed Vite bundle assets
+      app.use('/assets', express.static(path.join(distPath, 'assets'), {
+        maxAge: '1y',
+        immutable: true,
+      }));
+      // 1-day cache for general static files (images, icons, etc.)
+      app.use(express.static(distPath, {
+        maxAge: '1d',
+        etag: true,
+        lastModified: true,
+      }));
     }
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       if (fs.existsSync(indexPath)) {
+        // Never cache index.html so updates are visible immediately on deploy
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.sendFile(indexPath);
       } else {
         res.status(404).send('Application dist/index.html not found. Please ensure npm run build has completed.');
@@ -2028,10 +2053,15 @@ async function start() {
     });
   }
 
+  // Start listening on process.env.PORT as early as possible
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`BazarCycle BD app running on http://0.0.0.0:${PORT}`);
+    console.log(`BazarCycle BD app running on http://0.0.0.0:${PORT} (PID ${process.pid})`);
     if (pool) {
-      initDbSync().catch((e: any) => console.warn('Supabase initial sync notice:', e.message));
+      // Defer database initial synchronization to a background non-blocking microtask
+      // so the server is already active and healthy on PORT immediately.
+      setImmediate(() => {
+        initDbSync().catch((e: any) => console.warn('Supabase initial sync notice:', e.message));
+      });
     }
   });
 }
