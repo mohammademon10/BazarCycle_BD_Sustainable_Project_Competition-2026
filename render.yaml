@@ -11,3 +11,7 @@ services:
         value: 22.13.0
       - key: JWT_SECRET
         generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
