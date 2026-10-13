@@ -2238,7 +2238,9 @@ async function start() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
+    const distPath = fs.existsSync(path.resolve(__dirname, 'index.html'))
+      ? __dirname
+      : path.resolve(__dirname, 'dist');
     const indexPath = path.resolve(distPath, 'index.html');
     if (fs.existsSync(distPath)) {
       // 1-year immutable cache for content-hashed Vite bundle assets
